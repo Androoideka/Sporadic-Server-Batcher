@@ -3,7 +3,6 @@ package org.rtosss.batcherapp.controller;
 import java.io.File;
 
 import org.rtosss.batcherapp.gui.MainView;
-import org.rtosss.batcherapp.gui.Status;
 import org.rtosss.batcherapp.model.RTS;
 
 import javafx.event.ActionEvent;

@@ -1,8 +1,5 @@
 package org.rtosss.batcherapp.controller;
 
-import org.rtosss.batcherapp.gui.MainView;
-import org.rtosss.batcherapp.gui.Status;
-
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 

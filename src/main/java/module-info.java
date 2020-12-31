@@ -3,4 +3,5 @@ module org.rtosss.batcherapp {
 	requires javafx.graphics;
 	requires javafx.base;
     exports org.rtosss.batcherapp;
+    opens org.rtosss.batcherapp.model;
 }

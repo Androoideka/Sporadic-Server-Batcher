@@ -1,11 +1,17 @@
 package org.rtosss.batcherapp.gui;
 
+import java.util.Optional;
+
 import org.rtosss.batcherapp.model.AperiodicTask;
+import org.rtosss.batcherapp.model.Batch;
 import org.rtosss.batcherapp.model.PeriodicTask;
 import org.rtosss.batcherapp.model.RTS;
+import org.rtosss.batcherapp.model.Task;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -71,7 +77,33 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 		
 		createBatch = new Button("Send batch");
 		createBatch.setDisable(true);
+		createBatch.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent arg0) {
+				system.sendBatch(new Batch(periodicTaskTable.getSelectionModel().getSelectedItems(), aperiodicTaskTable.getSelectionModel().getSelectedItems()));
+			}
+			
+		});
 		addTask = new Button("Add task");
+		addTask.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent arg0) {
+				TaskCreateDialog dialog = new TaskCreateDialog();
+				Optional<Task> result = dialog.showAndWait();
+				if(result.isPresent()) {
+					if(result.get() instanceof PeriodicTask) {
+						PeriodicTask task = (PeriodicTask) result.get();
+						periodicTasks.add(task);
+					} else if(result.get() instanceof AperiodicTask) {
+						AperiodicTask task = (AperiodicTask) result.get();
+						aperiodicTasks.add(task);
+					}
+				}
+			}
+			
+		});
 		removeTask = new Button("Remove tasks");
 		
 		bottom = new HBox(createBatch, addTask, removeTask);

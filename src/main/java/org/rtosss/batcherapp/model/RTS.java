@@ -1,6 +1,7 @@
 package org.rtosss.batcherapp.model;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.rtosss.batcherapp.exceptions.CustomException;
 import org.rtosss.batcherapp.gui.Status;
@@ -32,6 +33,16 @@ public class RTS extends StatusObservable {
 	
 	public void sendBatch(Batch batch) throws CustomException {
 		// TO-DO use standard input to send it
+	}
+	
+	public void removeTasks(List<Task> selectedTasks) {
+		// Send message to FreeRTOS
+		tasks.removeAll(selectedTasks);
+	}
+	
+	public void initializeServer(Integer capacity, Integer period) throws CustomException {
+		// Send message to FreeRTOS
+		updateStatus(Status.ACTIVE);
 	}
 	
 	public void stop() {

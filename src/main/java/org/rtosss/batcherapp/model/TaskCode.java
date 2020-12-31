@@ -1,6 +1,10 @@
 package org.rtosss.batcherapp.model;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+
 public class TaskCode {
+	private static ObservableList<TaskCode> functions;
 	private final String methodName;
 	private final int computationTime;
 	
@@ -23,7 +27,20 @@ public class TaskCode {
 	
 	@Override
 	public String toString() {
-		return "TaskCode [name = " + methodName + ", running time = " + Integer.toUnsignedString(computationTime) + " ticks]";
+		return methodName + " - " + Integer.toUnsignedString(computationTime) + " ticks";
+	}
+	
+	public static void add(TaskCode taskCode) {
+		functions.add(taskCode);
+	}
+	
+	public static ObservableList<TaskCode> getFunctions() {
+		if (functions == null) {
+			functions = FXCollections.observableArrayList();
+			functions.add(new TaskCode("vTask0", "1"));
+			functions.add(new TaskCode("vTask1", "1"));
+		}
+		return functions;
 	}
 	
 }

@@ -44,6 +44,14 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		taskList = new ListView<Task>();
 		taskList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		cancelTask = new Button("Cancel tasks");
+		cancelTask.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent arg0) {
+				system.removeTasks(taskList.getSelectionModel().getSelectedItems());
+			}
+			
+		});
 		left = new VBox(taskList, cancelTask);
 		left.setSpacing(8);
 		left.setAlignment(Pos.CENTER);
