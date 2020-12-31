@@ -2,6 +2,7 @@ package org.rtosss.batcherapp.gui;
 
 import org.rtosss.batcherapp.model.AperiodicTask;
 import org.rtosss.batcherapp.model.PeriodicTask;
+import org.rtosss.batcherapp.model.RTS;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,7 +17,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-public class BatcherView extends BorderPane implements StatusDependent {
+public class BatcherView extends BorderPane implements IStatusObserver {
+	private RTS system; // Will be sending batches with "create batch"
+	
 	private ObservableList<PeriodicTask> periodicTasks;
 	private ObservableList<AperiodicTask> aperiodicTasks;
 	
@@ -67,6 +70,7 @@ public class BatcherView extends BorderPane implements StatusDependent {
 		tables = new HBox(periodicTaskTable, aperiodicTaskTable);
 		
 		createBatch = new Button("Send batch");
+		createBatch.setDisable(true);
 		addTask = new Button("Add task");
 		removeTask = new Button("Remove tasks");
 		
@@ -80,11 +84,19 @@ public class BatcherView extends BorderPane implements StatusDependent {
 	}
 
 	@Override
-	public void setStatus(Status status) {
+	public void updateStatus(Status status) {
 		if(status == Status.UNAVAILABLE || status == Status.LOADED) {
 			createBatch.setDisable(true);
 		} else {
 			createBatch.setDisable(false);
 		}
+	}
+
+	@Override
+	public void setRTS(RTS system) {
+    	if(system != null) {
+    		system.addObserver(this);
+    	}
+		this.system = system;
 	}
 }

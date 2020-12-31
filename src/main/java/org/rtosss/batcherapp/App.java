@@ -13,7 +13,7 @@ import javafx.stage.Stage;
 public class App extends Application {
     @Override
     public void start(Stage stage) {
-        Scene scene = new Scene(MainView.getInstance(), 1280, 720);
+        Scene scene = new Scene(new MainView(), 1280, 720);
         stage.setScene(scene);
         stage.setTitle("FreeRTOS Sporadic Server Batcher");
         stage.show();

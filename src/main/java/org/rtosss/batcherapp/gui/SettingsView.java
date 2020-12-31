@@ -2,6 +2,7 @@ package org.rtosss.batcherapp.gui;
 
 import java.io.IOException;
 
+import org.rtosss.batcherapp.model.RTS;
 import org.rtosss.batcherapp.model.Task;
 
 import javafx.event.ActionEvent;
@@ -18,7 +19,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.NumberStringConverter;
 
-public class SettingsView extends BorderPane implements StatusDependent {
+public class SettingsView extends BorderPane implements IStatusObserver {
+	private RTS system;
 	private boolean isOn;
 	
 	private VBox left;
@@ -70,14 +72,12 @@ public class SettingsView extends BorderPane implements StatusDependent {
 				isOn = !isOn;
 				if(isOn) {
 					try {
-						MainView.getInstance().getRTS().start();
-						MainView.getInstance().setStatus(Status.STARTED);
+						system.start();
 					} catch (IOException e) {
 						ExceptionHandler.showException(e);
 					}
 				}  else {
-					MainView.getInstance().getRTS().stop();
-					MainView.getInstance().setStatus(Status.LOADED);
+					system.stop();
 				}
 			}
 			
@@ -92,7 +92,7 @@ public class SettingsView extends BorderPane implements StatusDependent {
 	}
 
 	@Override
-	public void setStatus(Status status) {
+	public void updateStatus(Status status) {
 		if(status == Status.UNAVAILABLE || status == Status.LOADED) {
 			taskList.setItems(null);
 			isOn = false;
@@ -100,12 +100,20 @@ public class SettingsView extends BorderPane implements StatusDependent {
 			switchButton.setText("Start");
 			output.setText("");
 		} else if(status == Status.STARTED) {
-			taskList.setItems(MainView.getInstance().getRTS().getTasks());
+			taskList.setItems(system.getTasks());
 			isOn = true;
 			initialize.setDisable(false);
 			switchButton.setText("Stop");
 		} else if(status == Status.ACTIVE) {
 			initialize.setDisable(true);
 		}
+	}
+	
+	@Override
+	public void setRTS(RTS system) {
+    	if(system != null) {
+    		system.addObserver(this);
+    	}
+		this.system = system;
 	}
 }

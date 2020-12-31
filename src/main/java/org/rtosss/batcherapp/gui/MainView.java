@@ -12,9 +12,7 @@ import javafx.scene.layout.HBox;
 import org.rtosss.batcherapp.controller.ExecutableController;
 import org.rtosss.batcherapp.model.RTS;
 
-public class MainView extends BorderPane {
-	private static MainView instance = null;
-	
+public class MainView extends BorderPane implements IStatusObserver {
 	private RTS system;
 	
 	private Label statusValue;
@@ -30,7 +28,7 @@ public class MainView extends BorderPane {
 	private Tab systemBatcher;
 	private Tab systemInfo;
 	
-	private MainView() {
+	public MainView() {
 		super();
 		
 		statusValue = new Label();
@@ -67,41 +65,40 @@ public class MainView extends BorderPane {
 		this.setTop(topBar);
 		this.setCenter(systemViews);
 		
-		setStatus(Status.UNAVAILABLE);
+		updateStatus(Status.UNAVAILABLE);
 	}
 	
-	public void setStatus(Status status) {
+	@Override
+	public void updateStatus(Status status) {
 		statusValue.setText(status.toString());
 		statusValue.setTextFill(status.getColor());
 		
 		for(Tab tab : systemViews.getTabs()) {
-			if(status == Status.UNAVAILABLE && tab != systemBatcher) {
-				tab.getContent().setDisable(true);
+			if(status == Status.UNAVAILABLE) {
+				if(tab != systemBatcher) {
+					tab.getContent().setDisable(true);
+				}
 			} else {
 				tab.getContent().setDisable(false);
 			}
-			if(tab.getContent() instanceof StatusDependent) {
-				StatusDependent iTab = (StatusDependent) tab.getContent();
-				iTab.setStatus(status);
-			}
 		}
 	}
-	
-    public RTS getRTS() {
-    	return system;
-    }
     
+	@Override
     public void setRTS(RTS system) {
     	if(this.system != system && this.system != null) {
     		this.system.stop();
+        	this.system.removeObservers(system == null);
+    	}
+    	if(system != null) {
+    		system.addObserver(this);
+    	}
+    	for(Tab tab : systemViews.getTabs()) {
+    		if(tab.getContent() instanceof IStatusObserver) {
+				IStatusObserver tabContent = (IStatusObserver) tab.getContent();
+				tabContent.setRTS(system);
+			}
     	}
     	this.system = system;
     }
-	
-	public static MainView getInstance() {
-		if(instance == null) {
-			instance = new MainView();
-		}
-		return instance;
-	}
 }

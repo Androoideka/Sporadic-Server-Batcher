@@ -26,11 +26,9 @@ public class ExecutableController implements EventHandler<ActionEvent> {
 		fileChooser.getExtensionFilters().add(new ExtensionFilter("Executables", "*.exe"));
 		File selectedFile = fileChooser.showOpenDialog(view.getScene().getWindow());
 		if(selectedFile != null) {
-			view.setStatus(Status.LOADED);
 			view.setRTS(new RTS(selectedFile.toString()));
 		}
 		else {
-			view.setStatus(Status.UNAVAILABLE);
 			view.setRTS(null);
 		}
 	}

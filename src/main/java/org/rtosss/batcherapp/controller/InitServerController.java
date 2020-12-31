@@ -13,6 +13,6 @@ public class InitServerController implements EventHandler<ActionEvent> {
 
 	@Override
 	public void handle(ActionEvent arg0) {
-		MainView.getInstance().setStatus(Status.ACTIVE);
+		// Init server
 	}
 }

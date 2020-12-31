@@ -3,16 +3,18 @@ package org.rtosss.batcherapp.model;
 import java.io.IOException;
 
 import org.rtosss.batcherapp.exceptions.CustomException;
+import org.rtosss.batcherapp.gui.Status;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class RTS {
+public class RTS extends StatusObservable {
 	private ProcessBuilder builder;
 	private Process process;
 	private ObservableList<Task> tasks;
 	
 	public RTS(String systemExecLocation) {
+		super();
 		builder = new ProcessBuilder(systemExecLocation);
 		tasks = FXCollections.observableArrayList();
 	}
@@ -24,6 +26,7 @@ public class RTS {
 	public void start() throws IOException {
 		if(process == null) {
 			process = builder.start();
+			updateStatus(Status.STARTED);
 		}
 	}
 	
@@ -34,6 +37,7 @@ public class RTS {
 	public void stop() {
 		if(process != null) {
 			process.destroy();
+			updateStatus(Status.LOADED);
 		}
 	}
 }
