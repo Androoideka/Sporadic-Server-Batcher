@@ -55,7 +55,12 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 		pcompTime.setCellValueFactory(new PropertyValueFactory<>("computationTime"));
 		TableColumn<PeriodicTask, String> period = new TableColumn<>("Period");
 		period.setCellValueFactory(new PropertyValueFactory<>("period"));
-		periodicTaskTable.getColumns().setAll(pname, pfunc, pcompTime, period);
+		
+		periodicTaskTable.getColumns().add(pname);
+		periodicTaskTable.getColumns().add(pfunc);
+		periodicTaskTable.getColumns().add(pcompTime);
+		periodicTaskTable.getColumns().add(period);
+		
 		periodicTaskTable.setItems(periodicTasks);
 		
 		aperiodicTasks = FXCollections.observableArrayList();
@@ -70,7 +75,11 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 		acompTime.setCellValueFactory(new PropertyValueFactory<>("computationTime"));
 		TableColumn<AperiodicTask, String> arrivalTime = new TableColumn<>("Arrival Time");
 		arrivalTime.setCellValueFactory(new PropertyValueFactory<>("arrivalTime"));
-		aperiodicTaskTable.getColumns().setAll(aname, afunc, acompTime, arrivalTime);
+		
+		aperiodicTaskTable.getColumns().add(aname);
+		aperiodicTaskTable.getColumns().add(afunc);
+		aperiodicTaskTable.getColumns().add(acompTime);
+		aperiodicTaskTable.getColumns().add(arrivalTime);
 		aperiodicTaskTable.setItems(aperiodicTasks);
 		
 		tables = new HBox(periodicTaskTable, aperiodicTaskTable);

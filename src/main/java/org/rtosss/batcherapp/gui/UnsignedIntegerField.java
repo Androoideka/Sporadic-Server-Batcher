@@ -4,14 +4,14 @@ import java.util.function.UnaryOperator;
 
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.util.converter.NumberStringConverter;
+import javafx.util.converter.IntegerStringConverter;
 
 public class UnsignedIntegerField extends TextField {
 	
 	public UnsignedIntegerField() {
 		super();
-		NumberStringFilteredConverter converter = new NumberStringFilteredConverter();
-		final TextFormatter<Number> formatter = new TextFormatter<>(
+		IntegerStringFilteredConverter converter = new IntegerStringFilteredConverter();
+		final TextFormatter<Integer> formatter = new TextFormatter<>(
                 converter,
                 0,
                 converter.getFilter()
@@ -72,7 +72,7 @@ public class UnsignedIntegerField extends TextField {
 	    super.replaceSelection(text);
 	}
 	
-	class NumberStringFilteredConverter extends NumberStringConverter {
+	class IntegerStringFilteredConverter extends IntegerStringConverter {
         public UnaryOperator<TextFormatter.Change> getFilter() {
             return change -> {
                 String newText = change.getControlNewText();
