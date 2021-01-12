@@ -17,10 +17,6 @@ public class TaskCode {
 		return methodName;
 	}
 	
-	/*public Integer getComputationTime() {
-		return computationTime;
-	}*/
-	
 	public String getComputationTime() {
 		return Integer.toUnsignedString(computationTime);
 	}
@@ -37,8 +33,8 @@ public class TaskCode {
 	public static ObservableList<TaskCode> getFunctions() {
 		if (functions == null) {
 			functions = FXCollections.observableArrayList();
-			functions.add(new TaskCode("vTask0", "1"));
-			functions.add(new TaskCode("vTask1", "1"));
+			functions.add(new TaskCode("task0", "1"));
+			functions.add(new TaskCode("task1", "1"));
 		}
 		return functions;
 	}

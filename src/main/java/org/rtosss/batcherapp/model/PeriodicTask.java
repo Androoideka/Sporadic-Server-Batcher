@@ -11,4 +11,9 @@ public class PeriodicTask extends Task {
 	public String getPeriod() {
 		return Integer.toUnsignedString(period);
 	}
+
+	@Override
+	public String addTask() {
+		return "add_task_periodic " + this.getBaseCommand() + " " + getPeriod();
+	}
 }

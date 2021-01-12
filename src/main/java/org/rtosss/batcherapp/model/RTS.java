@@ -40,6 +40,10 @@ public class RTS extends StatusObservable {
 		tasks.removeAll(selectedTasks);
 	}
 	
+	public void getMaxCapacity(Integer period) {
+		
+	}
+	
 	public void initializeServer(Integer capacity, Integer period) throws CustomException {
 		// Send message to FreeRTOS
 		updateStatus(Status.ACTIVE);

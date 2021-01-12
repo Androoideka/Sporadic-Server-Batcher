@@ -34,5 +34,12 @@ public abstract class Task {
 	public void setHandle(String handle) {
 		this.handle = Long.parseUnsignedLong(handle);
 	}
+	protected String getBaseCommand() {
+		return name + " " + taskCode.getMethodName() + " " + params;
+	}
+	public abstract String addTask();
+	public String deleteTask() {
+		return "remove_task " + handle;
+	}
 	
 }
