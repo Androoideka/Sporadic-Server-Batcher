@@ -1,6 +1,8 @@
 package org.rtosss.batcherapp.gui;
 
 import org.rtosss.batcherapp.controller.TaskCreateController;
+import org.rtosss.batcherapp.gui.components.LimitedTextField;
+import org.rtosss.batcherapp.gui.components.UnsignedIntegerField;
 import org.rtosss.batcherapp.model.AperiodicTask;
 import org.rtosss.batcherapp.model.PeriodicTask;
 import org.rtosss.batcherapp.model.Task;
@@ -16,7 +18,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
@@ -29,11 +30,11 @@ public class TaskCreateDialog extends Dialog<Task> {
 	private VBox ticksBox;
 	
 	private Label nameLabel;
-	private TextField name;
+	private LimitedTextField name;
 	private Label taskCodeLabel;
 	private ComboBox<TaskCode> taskCodes;
 	private Label paramsLabel;
-	private TextField params;
+	private LimitedTextField params;
 	private Label ticksLabel;
 	private UnsignedIntegerField ticks;
 	private CheckBox periodic;
@@ -42,7 +43,8 @@ public class TaskCreateDialog extends Dialog<Task> {
 		super();
 		
 		nameLabel = new Label("Name");
-		name = new TextField();
+		name = new LimitedTextField();
+		name.setMaxLength(12);
 		nameBox = new VBox(nameLabel, name);
 		
 		taskCodeLabel = new Label("Function");
@@ -50,7 +52,8 @@ public class TaskCreateDialog extends Dialog<Task> {
 		taskCodeBox = new VBox(taskCodeLabel, taskCodes);
 		
 		paramsLabel = new Label("Parameters");
-		params = new TextField();
+		params = new LimitedTextField();
+		params.setMaxLength(17);
 		paramsBox = new VBox(paramsLabel, params);
 		
 		ticksLabel = new Label("Arrival");

@@ -101,4 +101,9 @@ public class MainView extends BorderPane implements IStatusObserver {
     	}
     	this.system = system;
     }
+
+	@Override
+	public void sendMessage(String message) {
+		return;
+	}
 }

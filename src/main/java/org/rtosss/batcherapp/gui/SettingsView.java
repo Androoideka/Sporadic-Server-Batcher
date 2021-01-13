@@ -2,6 +2,7 @@ package org.rtosss.batcherapp.gui;
 
 import java.io.IOException;
 
+import org.rtosss.batcherapp.gui.components.UnsignedIntegerField;
 import org.rtosss.batcherapp.model.RTS;
 import org.rtosss.batcherapp.model.Task;
 
@@ -121,7 +122,13 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	public void setRTS(RTS system) {
     	if(system != null) {
     		system.addObserver(this);
+    		system.setVisualOutput(this);
     	}
 		this.system = system;
+	}
+
+	@Override
+	public void sendMessage(String message) {
+		output.setText(message);
 	}
 }

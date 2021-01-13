@@ -1,4 +1,4 @@
-package org.rtosss.batcherapp.gui;
+package org.rtosss.batcherapp.gui.components;
 
 import java.util.function.UnaryOperator;
 
