@@ -8,7 +8,7 @@ import org.rtosss.batcherapp.gui.Status;
 
 public class StatusObservable {
 	private List<IStatusObserver> observers;
-	private Status status;
+	protected Status status;
 	
 	public StatusObservable() {
 		observers = new ArrayList<>();

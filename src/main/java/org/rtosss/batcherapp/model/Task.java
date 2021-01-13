@@ -4,12 +4,16 @@ public abstract class Task {
 	protected String name;
 	protected TaskCode taskCode;
 	protected String params;
-	protected long handle;
+	protected int handle;
 	
 	protected Task(String name, TaskCode taskCode, String params) {
 		this.name = name;
 		this.taskCode = taskCode;
-		this.params = params;
+		if(params.isBlank()) {
+			this.params = "NULL";
+		} else {
+			this.params = params;
+		}
 		this.handle = 0;
 	}
 	
@@ -29,10 +33,10 @@ public abstract class Task {
 		return params;
 	}
 	public String getHandle() {
-		return Long.toUnsignedString(handle);
+		return Integer.toUnsignedString(handle);
 	}
-	public void setHandle(String handle) {
-		this.handle = Long.parseUnsignedLong(handle);
+	public void setHandle(int handle) {
+		this.handle = handle;
 	}
 	protected String getBaseCommand() {
 		return name + " " + taskCode.getMethodName() + " " + params;

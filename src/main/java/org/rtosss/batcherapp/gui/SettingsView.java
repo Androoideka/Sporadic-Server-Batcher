@@ -17,6 +17,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.NumberStringConverter;
 
@@ -33,7 +34,8 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	private Label serverCapacityLabel;
 	private UnsignedIntegerField serverPeriod;
 	private UnsignedIntegerField serverCapacity;
-	private Button initialize;
+	private Button checkMaxCapacity;
+	private Button initialise;
 	
 	private TextArea output;
 	
@@ -49,7 +51,11 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 
 			@Override
 			public void handle(ActionEvent arg0) {
-				system.removeTasks(taskList.getSelectionModel().getSelectedItems());
+				try {
+					system.removeTasks(taskList.getSelectionModel().getSelectedItems());
+				} catch(Exception e) {
+					ExceptionHandler.showException(e);
+				}
 			}
 			
 		});
@@ -64,8 +70,13 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		serverPeriod.setTextFormatter(new TextFormatter<>(new NumberStringConverter()));
 		serverCapacity = new UnsignedIntegerField();
 		serverCapacity.setTextFormatter(new TextFormatter<>(new NumberStringConverter()));
-		initialize = new Button("Initialize");
-		right = new VBox(serverPeriodLabel, serverPeriod, serverCapacityLabel, serverCapacity, initialize);
+		checkMaxCapacity = new Button("Max capacity");
+		initialise = new Button("Initialise");
+		
+		HBox options = new HBox(checkMaxCapacity, initialise);
+		//options.setAlignment(Pos.CENTER);
+		
+		right = new VBox(serverPeriodLabel, serverPeriod, serverCapacityLabel, serverCapacity, options);
 		right.setSpacing(8);
 		right.setAlignment(Pos.CENTER);
 		right.setPadding(new Insets(20));
@@ -105,16 +116,19 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		if(status == Status.UNAVAILABLE || status == Status.LOADED) {
 			taskList.setItems(null);
 			isOn = false;
-			initialize.setDisable(true);
+			checkMaxCapacity.setDisable(true);
+			initialise.setDisable(true);
 			switchButton.setText("Start");
 			output.setText("");
 		} else if(status == Status.STARTED) {
 			taskList.setItems(system.getTasks());
 			isOn = true;
-			initialize.setDisable(false);
+			initialise.setDisable(false);
+			checkMaxCapacity.setDisable(false);
 			switchButton.setText("Stop");
 		} else if(status == Status.ACTIVE) {
-			initialize.setDisable(true);
+			checkMaxCapacity.setDisable(true);
+			initialise.setDisable(true);
 		}
 	}
 	

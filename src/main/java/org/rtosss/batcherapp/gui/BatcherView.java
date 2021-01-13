@@ -90,7 +90,11 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 
 			@Override
 			public void handle(ActionEvent arg0) {
-				system.sendBatch(new Batch(periodicTaskTable.getSelectionModel().getSelectedItems(), aperiodicTaskTable.getSelectionModel().getSelectedItems()));
+				try {
+					system.sendBatch(new Batch(periodicTaskTable.getSelectionModel().getSelectedItems(), aperiodicTaskTable.getSelectionModel().getSelectedItems()));
+				} catch(Exception e) {
+					ExceptionHandler.showException(e);
+				}
 			}
 			
 		});

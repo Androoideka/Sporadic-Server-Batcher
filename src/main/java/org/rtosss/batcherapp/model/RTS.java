@@ -7,7 +7,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.List;
 
-import org.rtosss.batcherapp.exceptions.CustomException;
+import org.rtosss.batcherapp.exceptions.RTOSException;
+import org.rtosss.batcherapp.exceptions.StateException;
+import org.rtosss.batcherapp.gui.ExceptionHandler;
 import org.rtosss.batcherapp.gui.IStatusObserver;
 import org.rtosss.batcherapp.gui.Status;
 
@@ -25,8 +27,7 @@ public class RTS extends StatusObservable {
 	private IStatusObserver visualOutput;
 	private IStatusObserver visualStats;
 	
-	private StringBuilder output;
-	
+	private BufferedReader outputReader;
 	private BufferedReader controlReader;
 	private BufferedWriter inputWriter;
 	
@@ -48,52 +49,125 @@ public class RTS extends StatusObservable {
 		return tasks;
 	}
 	
-	public void start() throws IOException {
+	public void start() throws RTOSException, IOException {
 		if(process == null) {
 			process = builder.start();
-			output = new StringBuilder("");
-			outputThread = new Thread(() -> {
-				try (BufferedReader outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-					String line;
-					while((line = outputReader.readLine()) != null) {
-						System.out.println("test");
-						output.append(line);
-						visualOutput.sendMessage(output.toString());
-					}
-				} catch (IOException e) {
-					
-				}
-			});
-			outputThread.start();
 			inputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+			outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			controlReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+			String response = controlReader.readLine();
+			try {
+				int handle = Integer.parseUnsignedInt(response);
+				PeriodicTask statTask = new PeriodicTask("stat", TaskCode.getStatTask(), "", "1000");
+				statTask.setHandle(handle);
+				tasks.add(statTask);
+			} catch(NumberFormatException e) {
+				ExceptionHandler.showException(new RTOSException(response));
+			}
+			
 			updateStatus(Status.STARTED);
 		}
 	}
 	
-	public void sendBatch(Batch batch) throws CustomException {
-		// TO-DO use standard input to send it
+	public void sendBatch(Batch batch) throws RTOSException, IOException, StateException {
+		if(status != Status.STARTED && status != Status.ACTIVE) {
+			Status[] statuses = {Status.STARTED, Status.ACTIVE};
+			throw StateException.factory(statuses);
+		}
+		for(Task task : batch.getTasks()) {
+			String command = task.addTask();
+			System.out.println(command);
+			inputWriter.write(command);
+			inputWriter.newLine();
+			String response = controlReader.readLine();
+			try {
+				int handle = Integer.parseUnsignedInt(response);
+				task.setHandle(handle);
+			} catch(NumberFormatException e) {
+				throw new RTOSException(response);
+			}
+		}
 	}
 	
-	public void removeTasks(List<Task> selectedTasks) {
+	public void removeTasks(List<Task> selectedTasks) throws RTOSException, IOException, StateException {
+		if(status != Status.STARTED && status != Status.ACTIVE) {
+			Status[] statuses = {Status.STARTED, Status.ACTIVE};
+			throw StateException.factory(statuses);
+		}
 		// Send message to FreeRTOS
-		tasks.removeAll(selectedTasks);
+		for(Task task : selectedTasks) {
+			String command = task.deleteTask();
+			System.out.println(command);
+			inputWriter.write(command);
+			inputWriter.newLine();
+			tasks.remove(task);
+		}
 	}
 	
-	public void getMaxCapacity(Integer period) {
+	public int getMaxCapacity(Integer period) throws RTOSException, IOException, StateException {
+		if(status != Status.STARTED) {
+			throw StateException.factory(Status.STARTED);
+		}
+		// Send message to FreeRTOS
+		String command = "get_max_server_capacity " + Integer.toUnsignedString(period);
+		inputWriter.write(command);
+		inputWriter.newLine();
+		String response = controlReader.readLine();
+		try {
+			int capacity = Integer.parseUnsignedInt(response);
+			return capacity;
+		} catch(NumberFormatException e) {
+			throw new RTOSException(response);
+		}
+	}
+	
+	public void initializeServer(Integer capacity, Integer period) throws RTOSException, IOException, StateException {
+		if(status != Status.STARTED) {
+			throw StateException.factory(Status.STARTED);
+		}
+		// Send message to FreeRTOS
+		String command = "initialize_server " + Integer.toUnsignedString(capacity) + " " + Integer.toUnsignedString(period);
+		inputWriter.write(command);
+		inputWriter.newLine();
+		String response = controlReader.readLine();
+		if(!response.equals("Scheduler started.")) {
+			throw new RTOSException(response);
+		}
+		// Initialise output stream
+		outputThread = new Thread(() -> {
+			try {
+				StringBuilder output = new StringBuilder("");
+				while(true) {
+					int c = outputReader.read();
+					if(c != -1) {
+						output.append((char) c);
+						//visualOutput.sendMessage(output.toString());
+						System.out.println(output.toString());
+					} else {
+						Thread.sleep(10);
+					}
+				}
+			} catch (IOException e) {
+				return;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		});
+		outputThread.start();
 		
-	}
-	
-	public void initializeServer(Integer capacity, Integer period) throws CustomException {
-		// Send message to FreeRTOS
 		updateStatus(Status.ACTIVE);
 	}
 	
 	public void stop() {
 		if(process != null) {
 			process.destroy();
-			inputWriter = null;
-			controlReader = null;
+			try {
+				inputWriter.close();
+				controlReader.close();
+				outputReader.close();
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
 			try {
 				outputThread.join();
 			} catch (InterruptedException e) {
