@@ -9,9 +9,9 @@ import java.util.List;
 
 import org.rtosss.batcherapp.exceptions.RTOSException;
 import org.rtosss.batcherapp.exceptions.StateException;
-import org.rtosss.batcherapp.gui.ExceptionHandler;
 import org.rtosss.batcherapp.gui.IStatusObserver;
 import org.rtosss.batcherapp.gui.Status;
+import org.rtosss.batcherapp.gui.components.ExceptionHandler;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -81,7 +81,7 @@ public class RTS extends StatusObservable {
 			inputWriter.newLine();
 			String response = controlReader.readLine();
 			try {
-				int handle = Integer.parseUnsignedInt(response);
+				Integer handle = Integer.parseUnsignedInt(response);
 				task.setHandle(handle);
 			} catch(NumberFormatException e) {
 				throw new RTOSException(response);
@@ -104,7 +104,7 @@ public class RTS extends StatusObservable {
 		}
 	}
 	
-	public int getMaxCapacity(Integer period) throws RTOSException, IOException, StateException {
+	public Integer getMaxCapacity(Integer period) throws RTOSException, IOException, StateException {
 		if(status != Status.STARTED) {
 			throw StateException.factory(Status.STARTED);
 		}
@@ -114,7 +114,7 @@ public class RTS extends StatusObservable {
 		inputWriter.newLine();
 		String response = controlReader.readLine();
 		try {
-			int capacity = Integer.parseUnsignedInt(response);
+			Integer capacity = Integer.parseUnsignedInt(response);
 			return capacity;
 		} catch(NumberFormatException e) {
 			throw new RTOSException(response);
@@ -136,13 +136,11 @@ public class RTS extends StatusObservable {
 		// Initialise output stream
 		outputThread = new Thread(() -> {
 			try {
-				StringBuilder output = new StringBuilder("");
 				while(true) {
-					int c = outputReader.read();
-					if(c != -1) {
-						output.append((char) c);
-						//visualOutput.sendMessage(output.toString());
-						System.out.println(output.toString());
+					int output = outputReader.read();
+					if(output != -1) {
+						char c = (char) output;
+						visualOutput.sendMessage(String.valueOf(c));
 					} else {
 						Thread.sleep(10);
 					}
@@ -168,10 +166,21 @@ public class RTS extends StatusObservable {
 			} catch(IOException e) {
 				e.printStackTrace();
 			}
-			try {
-				outputThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			if(outputThread != null) {
+				try {
+					outputThread.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				outputThread = null;
+			}
+			if(statThread != null) {
+				try {
+					statThread.join();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				statThread = null;
 			}
 			process = null;
 			updateStatus(Status.LOADED);

@@ -2,6 +2,7 @@ package org.rtosss.batcherapp.gui;
 
 import java.util.Optional;
 
+import org.rtosss.batcherapp.gui.components.ExceptionHandler;
 import org.rtosss.batcherapp.model.AperiodicTask;
 import org.rtosss.batcherapp.model.Batch;
 import org.rtosss.batcherapp.model.PeriodicTask;
@@ -24,7 +25,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
 public class BatcherView extends BorderPane implements IStatusObserver {
-	private RTS system; // Will be sending batches with "create batch"
+	private RTS system;
 	
 	private ObservableList<PeriodicTask> periodicTasks;
 	private ObservableList<AperiodicTask> aperiodicTasks;

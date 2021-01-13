@@ -11,12 +11,18 @@ import javafx.stage.Stage;
  * JavaFX App
  */
 public class App extends Application {
+	private MainView mainView;
+	
     @Override
     public void start(Stage stage) {
-        Scene scene = new Scene(new MainView(), 1280, 720);
+    	mainView = new MainView();
+        Scene scene = new Scene(mainView, 1280, 720);
         stage.setScene(scene);
         stage.setTitle("FreeRTOS Sporadic Server Batcher");
         stage.show();
+        stage.setOnCloseRequest(event -> {
+        	mainView.setRTS(null);
+        });
     }
 
     public static void main(String[] args) {

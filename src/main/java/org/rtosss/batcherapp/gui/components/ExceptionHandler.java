@@ -1,4 +1,4 @@
-package org.rtosss.batcherapp.gui;
+package org.rtosss.batcherapp.gui.components;
 
 import java.io.IOException;
 
@@ -20,7 +20,7 @@ public class ExceptionHandler {
 			alert.setHeaderText(null);
 		} else if(e instanceof StateException) {
 			alert.setTitle("State error");
-			alert.setHeaderText(null);
+			alert.setHeaderText("The state you are in does not allow that command.");
 		}
 		alert.setContentText(e.getMessage());
 		alert.showAndWait();

@@ -2,6 +2,7 @@ package org.rtosss.batcherapp.gui;
 
 import java.io.IOException;
 
+import org.rtosss.batcherapp.gui.components.ExceptionHandler;
 import org.rtosss.batcherapp.gui.components.UnsignedIntegerField;
 import org.rtosss.batcherapp.model.RTS;
 import org.rtosss.batcherapp.model.Task;
@@ -15,11 +16,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.util.converter.NumberStringConverter;
 
 public class SettingsView extends BorderPane implements IStatusObserver {
 	private RTS system;
@@ -59,25 +58,48 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 			}
 			
 		});
-		left = new VBox(taskList, cancelTask);
-		left.setSpacing(8);
+		left = new VBox(8, taskList, cancelTask);
 		left.setAlignment(Pos.CENTER);
 		left.setPadding(new Insets(20));
 		
-		serverPeriodLabel = new Label("Server Period");
 		serverCapacityLabel = new Label("Server Capacity");
-		serverPeriod = new UnsignedIntegerField();
-		serverPeriod.setTextFormatter(new TextFormatter<>(new NumberStringConverter()));
+		serverPeriodLabel = new Label("Server Period");
 		serverCapacity = new UnsignedIntegerField();
-		serverCapacity.setTextFormatter(new TextFormatter<>(new NumberStringConverter()));
+		serverPeriod = new UnsignedIntegerField();
 		checkMaxCapacity = new Button("Max capacity");
+		checkMaxCapacity.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent arg0) {
+				Integer period = Integer.parseUnsignedInt(serverPeriod.getText());
+				try {
+					Integer capacity = system.getMaxCapacity(period);
+					serverCapacity.setText(Integer.toUnsignedString(capacity));
+				} catch(NumberFormatException e) {
+				} catch(Exception e) {
+					ExceptionHandler.showException(e);
+				}
+			}
+			
+		});
 		initialise = new Button("Initialise");
+		initialise.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent arg0) {
+				Integer capacity = Integer.parseUnsignedInt(serverCapacity.getText());
+				Integer period = Integer.parseUnsignedInt(serverPeriod.getText());
+				try {
+					system.initializeServer(capacity, period);
+				} catch(Exception e) {
+					ExceptionHandler.showException(e);
+				}
+			}
+		});
 		
-		HBox options = new HBox(checkMaxCapacity, initialise);
-		//options.setAlignment(Pos.CENTER);
+		HBox options = new HBox(8, checkMaxCapacity, initialise);
 		
-		right = new VBox(serverPeriodLabel, serverPeriod, serverCapacityLabel, serverCapacity, options);
-		right.setSpacing(8);
+		right = new VBox(8, serverCapacityLabel, serverCapacity, serverPeriodLabel, serverPeriod, options);
 		right.setAlignment(Pos.CENTER);
 		right.setPadding(new Insets(20));
 		
@@ -143,6 +165,6 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 
 	@Override
 	public void sendMessage(String message) {
-		output.setText(message);
+		output.appendText(message);
 	}
 }

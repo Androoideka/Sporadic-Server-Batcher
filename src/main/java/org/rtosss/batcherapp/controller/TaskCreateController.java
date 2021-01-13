@@ -14,8 +14,9 @@ public class TaskCreateController implements EventHandler<ActionEvent> {
 
 	@Override
 	public void handle(ActionEvent arg0) {
-		dialog.addTask();
-		dialog.close();
+		if(dialog.addTask()) {
+			dialog.close();
+		}
 	}
 
 }

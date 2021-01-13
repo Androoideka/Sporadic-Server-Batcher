@@ -1,7 +1,7 @@
 package org.rtosss.batcherapp.model;
 
 public class PeriodicTask extends Task {
-	private int period;
+	private Integer period;
 
 	public PeriodicTask(String name, TaskCode taskCode, String params, String period) {
 		super(name, taskCode, params);
