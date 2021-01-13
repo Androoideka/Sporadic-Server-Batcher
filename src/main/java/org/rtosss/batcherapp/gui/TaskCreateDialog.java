@@ -108,6 +108,7 @@ public class TaskCreateDialog extends Dialog<Task> {
 		grid.add(taskCodeBox, 1, 0);
 		grid.add(paramsBox, 2, 0);
 		grid.add(periodic, 1, 2);
+		grid.add(sendNow, 1, 3);
 		grid.add(ticksBox, 1, 1);
 		getDialogPane().setContent(grid);
 		

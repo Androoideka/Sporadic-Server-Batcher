@@ -119,6 +119,15 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 			
 		});
 		removeTask = new Button("Remove tasks");
+		removeTask.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent arg0) {
+				periodicTasks.removeAll(periodicTaskTable.getSelectionModel().getSelectedItems());
+				aperiodicTasks.removeAll(aperiodicTaskTable.getSelectionModel().getSelectedItems());
+			}
+			
+		});
 		
 		bottom = new HBox(createBatch, addTask, removeTask);
 		bottom.setPadding(new Insets(20));

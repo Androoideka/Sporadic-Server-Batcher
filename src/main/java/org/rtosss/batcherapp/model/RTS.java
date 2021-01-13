@@ -57,7 +57,7 @@ public class RTS extends StatusObservable {
 			controlReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			String response = controlReader.readLine();
 			try {
-				int handle = Integer.parseUnsignedInt(response);
+				Integer handle = Integer.parseUnsignedInt(response);
 				PeriodicTask statTask = new PeriodicTask("stat", TaskCode.getStatTask(), "", "1000");
 				statTask.setHandle(handle);
 				tasks.add(statTask);
@@ -74,9 +74,9 @@ public class RTS extends StatusObservable {
 			Status[] statuses = {Status.STARTED, Status.ACTIVE};
 			throw StateException.factory(statuses);
 		}
+		// Send messages to FreeRTOS
 		for(Task task : batch.getTasks()) {
 			String command = task.addTask();
-			System.out.println(command);
 			inputWriter.write(command);
 			inputWriter.newLine();
 			String response = controlReader.readLine();
@@ -97,7 +97,6 @@ public class RTS extends StatusObservable {
 		// Send message to FreeRTOS
 		for(Task task : selectedTasks) {
 			String command = task.deleteTask();
-			System.out.println(command);
 			inputWriter.write(command);
 			inputWriter.newLine();
 			tasks.remove(task);
