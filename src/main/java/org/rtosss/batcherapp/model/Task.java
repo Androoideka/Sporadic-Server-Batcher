@@ -4,7 +4,7 @@ public abstract class Task {
 	protected String name;
 	protected TaskCode taskCode;
 	protected String params;
-	protected Integer handle;
+	protected String handle;
 	
 	protected Task(String name, TaskCode taskCode, String params) {
 		this.name = name;
@@ -14,7 +14,7 @@ public abstract class Task {
 		} else {
 			this.params = params;
 		}
-		this.handle = 0;
+		this.handle = null;
 	}
 	
 	public String getName() {
@@ -33,9 +33,9 @@ public abstract class Task {
 		return params;
 	}
 	public String getHandle() {
-		return Integer.toUnsignedString(handle);
+		return handle;
 	}
-	public void setHandle(Integer handle) {
+	public void setHandle(String handle) {
 		this.handle = handle;
 	}
 	protected String getBaseCommand() {
@@ -48,7 +48,7 @@ public abstract class Task {
 	
 	@Override
 	public String toString() {
-		return "Task " + getHandle() + " - " + name;
+		return "Task " + handle + " - " + name;
 	}
 	
 }

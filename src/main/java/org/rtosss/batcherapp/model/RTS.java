@@ -11,7 +11,6 @@ import org.rtosss.batcherapp.exceptions.RTOSException;
 import org.rtosss.batcherapp.exceptions.StateException;
 import org.rtosss.batcherapp.gui.IStatusObserver;
 import org.rtosss.batcherapp.gui.Status;
-import org.rtosss.batcherapp.gui.components.ExceptionHandler;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -56,13 +55,13 @@ public class RTS extends StatusObservable {
 			outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			controlReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			String response = controlReader.readLine();
-			try {
-				Integer handle = Integer.parseUnsignedInt(response);
+			if(response.startsWith("Handle: ")) {
 				PeriodicTask statTask = new PeriodicTask("stat", TaskCode.getStatTask(), "", "1000");
-				statTask.setHandle(handle);
+				statTask.setHandle(response.substring(response.indexOf(' ')));
+				System.out.println(statTask.getHandle());
 				tasks.add(statTask);
-			} catch(NumberFormatException e) {
-				ExceptionHandler.showException(new RTOSException(response));
+			} else {
+				throw new RTOSException(response);
 			}
 			
 			updateStatus(Status.STARTED);
@@ -80,10 +79,9 @@ public class RTS extends StatusObservable {
 			inputWriter.write(command);
 			inputWriter.newLine();
 			String response = controlReader.readLine();
-			try {
-				Integer handle = Integer.parseUnsignedInt(response);
-				task.setHandle(handle);
-			} catch(NumberFormatException e) {
+			if(response.startsWith("Handle: ")) {
+				task.setHandle(response.substring(response.indexOf(' ')));
+			} else {
 				throw new RTOSException(response);
 			}
 		}
