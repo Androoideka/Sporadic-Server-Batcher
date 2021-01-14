@@ -3,6 +3,7 @@ package org.rtosss.batcherapp.gui;
 import java.io.IOException;
 
 import org.rtosss.batcherapp.gui.components.ExceptionHandler;
+import org.rtosss.batcherapp.gui.components.MessageConsumer;
 import org.rtosss.batcherapp.gui.components.UnsignedIntegerField;
 import org.rtosss.batcherapp.model.RTS;
 import org.rtosss.batcherapp.model.Task;
@@ -37,6 +38,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	private Button initialise;
 	
 	private TextArea output;
+	private MessageConsumer messageConsumer;
 	
 	private Button switchButton;
 	
@@ -45,7 +47,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		
 		taskList = new ListView<Task>();
 		taskList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		cancelTask = new Button("Cancel tasks");
+		cancelTask = new Button("Cancel Tasks");
 		cancelTask.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -66,7 +68,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		serverPeriodLabel = new Label("Server Period");
 		serverCapacity = new UnsignedIntegerField();
 		serverPeriod = new UnsignedIntegerField();
-		checkMaxCapacity = new Button("Max capacity");
+		checkMaxCapacity = new Button("Max Capacity");
 		checkMaxCapacity.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -90,7 +92,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 				Integer capacity = Integer.parseUnsignedInt(serverCapacity.getText());
 				Integer period = Integer.parseUnsignedInt(serverPeriod.getText());
 				try {
-					system.initializeServer(capacity, period);
+					system.initialiseServer(capacity, period);
 				} catch(Exception e) {
 					ExceptionHandler.showException(e);
 				}
@@ -105,6 +107,8 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		
 		output = new TextArea();
 		output.setEditable(false);
+		messageConsumer = new MessageConsumer(output);
+		messageConsumer.start();
 		
 		switchButton = new Button("Start");
 		switchButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -142,6 +146,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 			initialise.setDisable(true);
 			switchButton.setText("Start");
 			output.setText("");
+			cancelTask.setDisable(true);
 		} else if(status == Status.STARTED) {
 			taskList.setItems(system.getTasks());
 			isOn = true;
@@ -151,6 +156,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		} else if(status == Status.ACTIVE) {
 			checkMaxCapacity.setDisable(true);
 			initialise.setDisable(true);
+			cancelTask.setDisable(false);
 		}
 	}
 	
@@ -158,13 +164,8 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	public void setRTS(RTS system) {
     	if(system != null) {
     		system.addObserver(this);
-    		system.setVisualOutput(this);
+    		system.setVisualOutput(messageConsumer.getMessageQueue());
     	}
 		this.system = system;
-	}
-
-	@Override
-	public void sendMessage(String message) {
-		output.appendText(message);
 	}
 }

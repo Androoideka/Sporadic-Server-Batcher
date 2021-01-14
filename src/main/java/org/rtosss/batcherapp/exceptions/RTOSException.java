@@ -5,7 +5,7 @@ public class RTOSException extends RuntimeException {
 
 	public RTOSException(String message) {
 		super(message);
-		if(message.equals("Your command wasn't recognized.")) {
+		if(message.equals("Couldn't find desired item.")) {
 			errorCode = ErrorCode.NOTFOUND;
 		} else if(message.equals("Cannot execute this command while the scheduler is active.")) {
 			errorCode = ErrorCode.SCHEDULER_RUNNING;

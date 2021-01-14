@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 
 import org.rtosss.batcherapp.exceptions.RTOSException;
 import org.rtosss.batcherapp.exceptions.StateException;
@@ -23,7 +24,7 @@ public class RTS extends StatusObservable {
 	private Thread outputThread;
 	private Thread statThread;
 	
-	private IStatusObserver visualOutput;
+	private BlockingQueue<Character> visualOutput;
 	private IStatusObserver visualStats;
 	
 	private BufferedReader outputReader;
@@ -35,8 +36,8 @@ public class RTS extends StatusObservable {
 		builder = new ProcessBuilder(systemExecLocation);
 		tasks = FXCollections.observableArrayList();
 	}
-	
-	public void setVisualOutput(IStatusObserver visualOutput) {
+
+	public void setVisualOutput(BlockingQueue<Character> visualOutput) {
 		this.visualOutput = visualOutput;
 	}
 
@@ -48,21 +49,22 @@ public class RTS extends StatusObservable {
 		return tasks;
 	}
 	
+	private void readStatTask() throws IOException {
+		String response = controlReader.readLine();
+		PeriodicTask statTask = new PeriodicTask("stat", TaskCode.getStatTask(), "", "1000");
+		statTask.setHandle(response.substring(response.indexOf(' ') + 1));
+		tasks.add(statTask);
+	}
+	
 	public void start() throws RTOSException, IOException {
 		if(process == null) {
 			process = builder.start();
 			inputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 			outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			controlReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-			String response = controlReader.readLine();
-			if(response.startsWith("Handle: ")) {
-				PeriodicTask statTask = new PeriodicTask("stat", TaskCode.getStatTask(), "", "1000");
-				statTask.setHandle(response.substring(response.indexOf(' ')));
-				System.out.println(statTask.getHandle());
-				tasks.add(statTask);
-			} else {
-				throw new RTOSException(response);
-			}
+			
+			// Comment this out if not using stats
+			readStatTask();
 			
 			updateStatus(Status.STARTED);
 		}
@@ -78,9 +80,11 @@ public class RTS extends StatusObservable {
 			String command = task.addTask();
 			inputWriter.write(command);
 			inputWriter.newLine();
+			inputWriter.flush();
 			String response = controlReader.readLine();
 			if(response.startsWith("Handle: ")) {
-				task.setHandle(response.substring(response.indexOf(' ')));
+				task.setHandle(response.substring(response.indexOf(' ') + 1));
+				tasks.add(task);
 			} else {
 				throw new RTOSException(response);
 			}
@@ -88,15 +92,15 @@ public class RTS extends StatusObservable {
 	}
 	
 	public void removeTasks(List<Task> selectedTasks) throws RTOSException, IOException, StateException {
-		if(status != Status.STARTED && status != Status.ACTIVE) {
-			Status[] statuses = {Status.STARTED, Status.ACTIVE};
-			throw StateException.factory(statuses);
+		if(status != Status.ACTIVE) {
+			throw StateException.factory(Status.ACTIVE);
 		}
 		// Send message to FreeRTOS
 		for(Task task : selectedTasks) {
 			String command = task.deleteTask();
 			inputWriter.write(command);
 			inputWriter.newLine();
+			inputWriter.flush();
 			tasks.remove(task);
 		}
 	}
@@ -109,6 +113,7 @@ public class RTS extends StatusObservable {
 		String command = "get_max_server_capacity " + Integer.toUnsignedString(period);
 		inputWriter.write(command);
 		inputWriter.newLine();
+		inputWriter.flush();
 		String response = controlReader.readLine();
 		try {
 			Integer capacity = Integer.parseUnsignedInt(response);
@@ -118,14 +123,15 @@ public class RTS extends StatusObservable {
 		}
 	}
 	
-	public void initializeServer(Integer capacity, Integer period) throws RTOSException, IOException, StateException {
+	public void initialiseServer(Integer capacity, Integer period) throws RTOSException, IOException, StateException {
 		if(status != Status.STARTED) {
 			throw StateException.factory(Status.STARTED);
 		}
 		// Send message to FreeRTOS
-		String command = "initialize_server " + Integer.toUnsignedString(capacity) + " " + Integer.toUnsignedString(period);
+		String command = "initialise_server " + Integer.toUnsignedString(capacity) + " " + Integer.toUnsignedString(period);
 		inputWriter.write(command);
 		inputWriter.newLine();
+		inputWriter.flush();
 		String response = controlReader.readLine();
 		if(!response.equals("Scheduler started.")) {
 			throw new RTOSException(response);
@@ -133,14 +139,10 @@ public class RTS extends StatusObservable {
 		// Initialise output stream
 		outputThread = new Thread(() -> {
 			try {
-				while(true) {
-					int output = outputReader.read();
-					if(output != -1) {
-						char c = (char) output;
-						visualOutput.sendMessage(String.valueOf(c));
-					} else {
-						Thread.sleep(10);
-					}
+				int output;
+				while((output = outputReader.read()) != -1) {
+					char c = (char) output;
+					visualOutput.put(c);
 				}
 			} catch (IOException e) {
 				return;

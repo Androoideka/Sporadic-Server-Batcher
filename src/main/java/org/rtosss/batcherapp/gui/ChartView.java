@@ -25,9 +25,4 @@ public class ChartView extends BorderPane implements IStatusObserver {
     		system.setVisualStats(this);
     	}
 	}
-
-	@Override
-	public void sendMessage(String message) {
-		// Information for last few ticks I guess
-	}
 }

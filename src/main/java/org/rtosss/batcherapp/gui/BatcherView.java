@@ -85,7 +85,7 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 		
 		tables = new HBox(periodicTaskTable, aperiodicTaskTable);
 		
-		createBatch = new Button("Send batch");
+		createBatch = new Button("Send Batch");
 		createBatch.setDisable(true);
 		createBatch.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -99,7 +99,7 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 			}
 			
 		});
-		addTask = new Button("Add task");
+		addTask = new Button("Add Task");
 		addTask.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -118,7 +118,7 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 			}
 			
 		});
-		removeTask = new Button("Remove tasks");
+		removeTask = new Button("Remove Tasks");
 		removeTask.setOnAction(new EventHandler<ActionEvent>() {
 
 			@Override
@@ -153,9 +153,5 @@ public class BatcherView extends BorderPane implements IStatusObserver {
     		system.addObserver(this);
     	}
 		this.system = system;
-	}
-
-	@Override
-	public void sendMessage(String message) {
 	}
 }
