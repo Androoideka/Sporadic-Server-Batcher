@@ -3,7 +3,7 @@ package org.rtosss.batcherapp.gui;
 import java.io.IOException;
 
 import org.rtosss.batcherapp.gui.components.ExceptionHandler;
-import org.rtosss.batcherapp.gui.components.MessageConsumer;
+import org.rtosss.batcherapp.gui.components.TextAreaMessageConsumer;
 import org.rtosss.batcherapp.gui.components.UnsignedIntegerField;
 import org.rtosss.batcherapp.model.RTS;
 import org.rtosss.batcherapp.model.Task;
@@ -38,7 +38,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	private Button initialise;
 	
 	private TextArea output;
-	private MessageConsumer messageConsumer;
+	private TextAreaMessageConsumer messageConsumer;
 	
 	private Button switchButton;
 	
@@ -77,7 +77,6 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 				try {
 					Integer capacity = system.getMaxCapacity(period);
 					serverCapacity.setText(Integer.toUnsignedString(capacity));
-				} catch(NumberFormatException e) {
 				} catch(Exception e) {
 					ExceptionHandler.showException(e);
 				}
@@ -107,7 +106,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		
 		output = new TextArea();
 		output.setEditable(false);
-		messageConsumer = new MessageConsumer(output);
+		messageConsumer = new TextAreaMessageConsumer(output);
 		messageConsumer.start();
 		
 		switchButton = new Button("Start");
@@ -140,19 +139,17 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	@Override
 	public void updateStatus(Status status) {
 		if(status == Status.UNAVAILABLE || status == Status.LOADED) {
-			taskList.setItems(null);
 			isOn = false;
 			checkMaxCapacity.setDisable(true);
 			initialise.setDisable(true);
 			switchButton.setText("Start");
-			output.setText("");
 			cancelTask.setDisable(true);
 		} else if(status == Status.STARTED) {
-			taskList.setItems(system.getTasks());
 			isOn = true;
 			initialise.setDisable(false);
 			checkMaxCapacity.setDisable(false);
 			switchButton.setText("Stop");
+			output.setText("");
 		} else if(status == Status.ACTIVE) {
 			checkMaxCapacity.setDisable(true);
 			initialise.setDisable(true);
@@ -165,6 +162,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
     	if(system != null) {
     		system.addObserver(this);
     		system.setVisualOutput(messageConsumer.getMessageQueue());
+    		taskList.setItems(system.getTasks());
     	}
 		this.system = system;
 	}

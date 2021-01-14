@@ -2,6 +2,8 @@ package org.rtosss.batcherapp.model;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -10,7 +12,6 @@ import java.util.concurrent.BlockingQueue;
 
 import org.rtosss.batcherapp.exceptions.RTOSException;
 import org.rtosss.batcherapp.exceptions.StateException;
-import org.rtosss.batcherapp.gui.IStatusObserver;
 import org.rtosss.batcherapp.gui.Status;
 
 import javafx.collections.FXCollections;
@@ -20,12 +21,14 @@ public class RTS extends StatusObservable {
 	private ProcessBuilder builder;
 	private Process process;
 	private ObservableList<Task> tasks;
+	private Integer serverCapacity;
+	private Integer serverPeriod;
 	
 	private Thread outputThread;
 	private Thread statThread;
 	
 	private BlockingQueue<Character> visualOutput;
-	private IStatusObserver visualStats;
+	private BlockingQueue<TickStats> visualStats;
 	
 	private BufferedReader outputReader;
 	private BufferedReader controlReader;
@@ -41,7 +44,7 @@ public class RTS extends StatusObservable {
 		this.visualOutput = visualOutput;
 	}
 
-	public void setVisualStats(IStatusObserver visualStats) {
+	public void setVisualStats(BlockingQueue<TickStats> visualStats) {
 		this.visualStats = visualStats;
 	}
 
@@ -58,6 +61,7 @@ public class RTS extends StatusObservable {
 	
 	public void start() throws RTOSException, IOException {
 		if(process == null) {
+			tasks.clear();
 			process = builder.start();
 			inputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 			outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -123,12 +127,14 @@ public class RTS extends StatusObservable {
 		}
 	}
 	
-	public void initialiseServer(Integer capacity, Integer period) throws RTOSException, IOException, StateException {
+	public void initialiseServer(Integer serverCapacity, Integer serverPeriod) throws RTOSException, IOException, StateException {
 		if(status != Status.STARTED) {
 			throw StateException.factory(Status.STARTED);
 		}
 		// Send message to FreeRTOS
-		String command = "initialise_server " + Integer.toUnsignedString(capacity) + " " + Integer.toUnsignedString(period);
+		String command = "initialise_server " 
+		+ Integer.toUnsignedString(serverCapacity) 
+		+ " " + Integer.toUnsignedString(serverPeriod);
 		inputWriter.write(command);
 		inputWriter.newLine();
 		inputWriter.flush();
@@ -136,6 +142,11 @@ public class RTS extends StatusObservable {
 		if(!response.equals("Scheduler started.")) {
 			throw new RTOSException(response);
 		}
+		this.serverCapacity = serverCapacity;
+		this.serverPeriod = serverPeriod;
+		
+		updateStatus(Status.ACTIVE);
+		
 		// Initialise output stream
 		outputThread = new Thread(() -> {
 			try {
@@ -152,7 +163,38 @@ public class RTS extends StatusObservable {
 		});
 		outputThread.start();
 		
-		updateStatus(Status.ACTIVE);
+		// Initialise stat stream
+		statThread = new Thread(() -> {
+			File file = new File(System.getProperty("user.dir") + File.separator + "log.txt");
+			while(process != null) {
+				try (BufferedReader statsReader = new BufferedReader(new FileReader(file))) {
+					String line;
+					while((line = statsReader.readLine()) != null && !line.equals("0 00000000 0")) {
+						String[] stats = line.split(" ");
+						Integer tick = Integer.parseUnsignedInt(stats[0]);
+						String handle = stats[1];
+						Integer capacity = Integer.parseUnsignedInt(stats[2]);
+						
+						TickStats tickStats = new TickStats(tick, handle, capacity);
+						visualStats.put(tickStats);
+					}
+					Thread.sleep(200);
+				} catch (IOException e) {
+					return;
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		statThread.start();
+	}
+	
+	public Integer getServerCapacity() {
+		return serverCapacity;
+	}
+
+	public Integer getServerPeriod() {
+		return serverPeriod;
 	}
 	
 	public void stop() {
@@ -165,6 +207,7 @@ public class RTS extends StatusObservable {
 			} catch(IOException e) {
 				e.printStackTrace();
 			}
+			process = null;
 			if(outputThread != null) {
 				try {
 					outputThread.join();
@@ -181,7 +224,6 @@ public class RTS extends StatusObservable {
 				}
 				statThread = null;
 			}
-			process = null;
 			updateStatus(Status.LOADED);
 		}
 	}

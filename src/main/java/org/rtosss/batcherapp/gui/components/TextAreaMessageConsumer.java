@@ -8,11 +8,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import javafx.animation.AnimationTimer;
 import javafx.scene.control.TextArea;
 
-public class MessageConsumer extends AnimationTimer {
+public class TextAreaMessageConsumer extends AnimationTimer {
 	private final BlockingQueue<Character> messageQueue;
 	private final TextArea textArea;
 	
-	public MessageConsumer(TextArea textArea) {
+	public TextAreaMessageConsumer(TextArea textArea) {
 		super();
 		messageQueue = new LinkedBlockingQueue<>();
 		this.textArea = textArea;
