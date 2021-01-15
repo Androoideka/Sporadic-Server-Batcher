@@ -20,7 +20,11 @@ import javafx.collections.ObservableList;
 public class RTS extends StatusObservable {
 	private ProcessBuilder builder;
 	private Process process;
+	
 	private ObservableList<Task> tasks;
+	private PeriodicTask statTask;
+	private PeriodicTask idleTask;
+	
 	private Integer serverCapacity;
 	private Integer serverPeriod;
 	
@@ -54,7 +58,7 @@ public class RTS extends StatusObservable {
 	
 	private void readStatTask() throws IOException {
 		String response = controlReader.readLine();
-		PeriodicTask statTask = new PeriodicTask("stat", TaskCode.getStatTask(), "", "1000");
+		statTask = new PeriodicTask("stat", TaskCode.getStatCode(), "", "1000");
 		statTask.setHandle(response.substring(response.indexOf(' ') + 1));
 		tasks.add(statTask);
 	}
@@ -139,7 +143,11 @@ public class RTS extends StatusObservable {
 		inputWriter.newLine();
 		inputWriter.flush();
 		String response = controlReader.readLine();
-		if(!response.equals("Scheduler started.")) {
+		if(response.startsWith("Handle: ")) {
+			idleTask = new PeriodicTask("IDLE", TaskCode.getIdleCode(), "", "4294967295");
+			idleTask.setHandle(response.substring(response.indexOf(' ') + 1));
+			tasks.add(idleTask);
+		} else {
 			throw new RTOSException(response);
 		}
 		this.serverCapacity = serverCapacity;
@@ -166,6 +174,12 @@ public class RTS extends StatusObservable {
 		// Initialise stat stream
 		statThread = new Thread(() -> {
 			File file = new File(System.getProperty("user.dir") + File.separator + "log.txt");
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			while(process != null) {
 				try (BufferedReader statsReader = new BufferedReader(new FileReader(file))) {
 					String line;

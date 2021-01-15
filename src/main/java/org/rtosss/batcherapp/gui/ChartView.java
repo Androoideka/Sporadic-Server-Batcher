@@ -2,49 +2,102 @@ package org.rtosss.batcherapp.gui;
 
 import org.rtosss.batcherapp.gui.components.ChartMessageConsumer;
 import org.rtosss.batcherapp.model.RTS;
+import org.rtosss.batcherapp.model.Task;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart.Series;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class ChartView extends BorderPane implements IStatusObserver {
+public class ChartView extends VBox implements IStatusObserver {
 	private RTS system;
-	
-	private VBox charts;
 	
 	private NumberAxis xAxisTicks;
 	
 	private NumberAxis yAxisCapacity;
 	private AreaChart<Number, Number> serverChart;
+	
+	private CategoryAxis yAxisTask;
+	private LineChart<Number, String> taskChart;
+	
+	private ScrollBar scroller;
+	
 	private ChartMessageConsumer messageConsumer;
 	
 	public ChartView() {
 		super();
-		xAxisTicks = new NumberAxis("Ticks", 0, 2000, 1);
-		xAxisTicks.setMinorTickCount(0);
+		this.setAlignment(Pos.CENTER);
+		
+		xAxisTicks = new NumberAxis("Ticks", 0, 10, 1);
+		xAxisTicks.setMinorTickVisible(false);
 		
 		yAxisCapacity = new NumberAxis("Capacity", 0, 10, 1);
-		yAxisCapacity.setMinorTickCount(0);
+		yAxisCapacity.setMinorTickVisible(false);
 		
 		serverChart = new AreaChart<>(xAxisTicks, yAxisCapacity);
 		serverChart.setTitle("Server capacity over time");
 		
-		charts = new VBox(serverChart);
-		charts.setAlignment(Pos.CENTER);
-		this.setCenter(charts);
+		yAxisTask = new CategoryAxis();
+		yAxisTask.setLabel("Task Handles");
+		
+		taskChart = new LineChart<>(xAxisTicks, yAxisTask);
+		taskChart.setTitle("Running tasks over time");
+		
+		scroller = new ScrollBar();
+		scroller.setMin(0);
+		scroller.setMax(10);
+		scroller.setBlockIncrement(1);
+		scroller.setUnitIncrement(1);
+		scroller.valueProperty().addListener(new ChangeListener<Number>() {
+
+			@Override
+			public void changed(ObservableValue<? extends Number> arg0, Number arg1, Number arg2) {
+				double realPosition = scroller.getValue();
+				double newValue = Math.floor(realPosition);
+				scroller.valueProperty().set(newValue);
+				xAxisTicks.setLowerBound(newValue);
+				xAxisTicks.setUpperBound(newValue + 10);
+			}
+			
+		});
+		
+		VBox.setVgrow(serverChart, Priority.ALWAYS);
+		VBox.setVgrow(taskChart, Priority.ALWAYS);
+		this.getChildren().add(serverChart);
+		this.getChildren().add(taskChart);
+		this.getChildren().add(scroller);
 	}
 
 	@Override
 	public void updateStatus(Status status) {
 		if(status == Status.ACTIVE) {
 			serverChart.getData().clear();
-			yAxisCapacity.setUpperBound(system.getServerCapacity() + 2);
+			taskChart.getData().clear();
+			
+			yAxisCapacity.setUpperBound(system.getServerCapacity() + 2); // +2 just makes it look nicer
+			ObservableList<String> handles = FXCollections.observableArrayList();
+			for(Task task : system.getTasks()) {
+				handles.add(task.getHandle());
+			}
+			yAxisTask.setCategories(handles);
+			
 			Series<Number, Number> server = new Series<>();
 			serverChart.getData().add(server);
-			messageConsumer = new ChartMessageConsumer(server);
+			
+			Series<Number, String> task = new Series<>();
+			taskChart.getData().add(task);
+			
+			messageConsumer = new ChartMessageConsumer(server, task, scroller);
 			messageConsumer.start();
 			system.setVisualStats(messageConsumer.getMessageQueue());
 		} else {

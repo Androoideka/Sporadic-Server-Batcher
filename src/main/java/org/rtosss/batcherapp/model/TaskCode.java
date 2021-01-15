@@ -8,7 +8,8 @@ import javafx.collections.ObservableList;
 
 public final class TaskCode {
 	private static ObservableList<TaskCode> functions;
-	private static TaskCode statTask;
+	private static TaskCode statCode;
+	private static TaskCode idleCode;
 	private final String methodName;
 	private final int computationTime;
 	
@@ -73,11 +74,18 @@ public final class TaskCode {
 		return functions;
 	}
 	
-	public static TaskCode getStatTask() {
-		if(statTask == null) {
-			statTask = new TaskCode("vWriteStatsTask", "1");
+	public static TaskCode getStatCode() {
+		if(statCode == null) {
+			statCode = new TaskCode("vWriteStatsTask", "1");
 		}
-		return statTask;
+		return statCode;
+	}
+	
+	public static TaskCode getIdleCode() {
+		if(idleCode == null) {
+			idleCode = new TaskCode("prvIdleTask", "0");
+		}
+		return idleCode;
 	}
 	
 }
