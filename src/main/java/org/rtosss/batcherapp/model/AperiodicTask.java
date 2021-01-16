@@ -19,6 +19,10 @@ public class AperiodicTask extends Task {
 		}
 		return Integer.toUnsignedString(arrivalTime);
 	}
+	
+	public Integer getArrival() {
+		return arrivalTime;
+	}
 
 	@Override
 	public String addTask() {

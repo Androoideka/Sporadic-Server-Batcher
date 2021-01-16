@@ -14,6 +14,7 @@ import org.rtosss.batcherapp.exceptions.ErrorCode;
 import org.rtosss.batcherapp.exceptions.RTOSException;
 import org.rtosss.batcherapp.exceptions.StateException;
 import org.rtosss.batcherapp.gui.Status;
+import org.rtosss.batcherapp.gui.components.AperiodicArrivalManager;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,7 +23,7 @@ public class RTS extends StatusObservable {
 	private ProcessBuilder builder;
 	private Process process;
 	
-	private ObservableList<Task> tasks;
+	private ObservableList<TaskInstance> tasks;
 	private PeriodicTask statTask;
 	private PeriodicTask idleTask;
 	
@@ -34,6 +35,7 @@ public class RTS extends StatusObservable {
 	
 	private BlockingQueue<Character> visualOutput;
 	private BlockingQueue<TickStats> visualStats;
+	private AperiodicArrivalManager aperiodicManager;
 	
 	private BufferedReader outputReader;
 	private BufferedReader controlReader;
@@ -43,6 +45,8 @@ public class RTS extends StatusObservable {
 		super();
 		builder = new ProcessBuilder(systemExecLocation);
 		tasks = FXCollections.observableArrayList();
+		statTask = new PeriodicTask("stat", TaskCode.getStatCode(), "", "1000");
+		idleTask = new PeriodicTask("IDLE", TaskCode.getIdleCode(), "", "4294967295");
 	}
 
 	public void setVisualOutput(BlockingQueue<Character> visualOutput) {
@@ -52,16 +56,18 @@ public class RTS extends StatusObservable {
 	public void setVisualStats(BlockingQueue<TickStats> visualStats) {
 		this.visualStats = visualStats;
 	}
+	
+	public void setAperiodicManager(AperiodicArrivalManager aperiodicManager) {
+		this.aperiodicManager = aperiodicManager;
+	}
 
-	public ObservableList<Task> getTasks() {
+	public ObservableList<TaskInstance> getTasks() {
 		return tasks;
 	}
 	
 	private void readStatTask() throws IOException {
 		String response = controlReader.readLine();
-		statTask = new PeriodicTask("stat", TaskCode.getStatCode(), "", "1000");
-		statTask.setHandle(response.substring(response.indexOf(' ') + 1));
-		tasks.add(statTask);
+		tasks.add(new TaskInstance(statTask, response.substring(response.indexOf(' ') + 1)));
 	}
 	
 	public void start() throws RTOSException, IOException {
@@ -92,20 +98,23 @@ public class RTS extends StatusObservable {
 			inputWriter.flush();
 			String response = controlReader.readLine();
 			if(response.startsWith("Handle: ")) {
-				task.setHandle(response.substring(response.indexOf(' ') + 1));
-				tasks.add(task);
+				TaskInstance instance = new TaskInstance(task, response.substring(response.indexOf(' ') + 1));
+				tasks.add(instance);
+				if(instance.getTask() instanceof AperiodicTask) {
+					aperiodicManager.addTask(instance);
+				}
 			} else {
 				throw new RTOSException(response);
 			}
 		}
 	}
 	
-	public void removeTasks(List<Task> selectedTasks) throws RTOSException, IOException, StateException {
+	public void removeTasks(List<TaskInstance> selectedTasks) throws RTOSException, IOException, StateException {
 		if(status != Status.ACTIVE) {
 			throw StateException.factory(Status.ACTIVE);
 		}
 		// Send message to FreeRTOS
-		for(Task task : selectedTasks) {
+		for(TaskInstance task : selectedTasks) {
 			String command = task.deleteTask();
 			inputWriter.write(command);
 			inputWriter.newLine();
@@ -145,9 +154,7 @@ public class RTS extends StatusObservable {
 		inputWriter.flush();
 		String response = controlReader.readLine();
 		if(response.startsWith("Handle: ")) {
-			idleTask = new PeriodicTask("IDLE", TaskCode.getIdleCode(), "", "4294967295");
-			idleTask.setHandle(response.substring(response.indexOf(' ') + 1));
-			tasks.add(idleTask);
+			tasks.add(new TaskInstance(idleTask, response.substring(response.indexOf(' ') + 1)));
 		} else {
 			RTOSException e = new RTOSException(response);
 			if(e.getErrorCode() == ErrorCode.SCHEDULE_NOT_FEASIBLE) {

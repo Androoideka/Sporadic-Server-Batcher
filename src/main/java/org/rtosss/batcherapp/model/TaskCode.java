@@ -22,8 +22,8 @@ public final class TaskCode {
 		return methodName;
 	}
 	
-	public String getComputationTime() {
-		return Integer.toUnsignedString(computationTime);
+	public Integer getComputationTime() {
+		return computationTime;
 	}
 	
 	@Override

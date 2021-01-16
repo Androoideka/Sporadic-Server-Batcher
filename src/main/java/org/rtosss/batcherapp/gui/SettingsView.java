@@ -6,7 +6,7 @@ import org.rtosss.batcherapp.gui.components.ExceptionHandler;
 import org.rtosss.batcherapp.gui.components.TextAreaMessageConsumer;
 import org.rtosss.batcherapp.gui.components.UnsignedIntegerField;
 import org.rtosss.batcherapp.model.RTS;
-import org.rtosss.batcherapp.model.Task;
+import org.rtosss.batcherapp.model.TaskInstance;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -26,7 +26,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	private boolean isOn;
 	
 	private VBox left;
-	private ListView<Task> taskList;
+	private ListView<TaskInstance> taskList;
 	private Button cancelTask;
 	
 	private VBox right;
@@ -45,7 +45,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	public SettingsView() {
 		super();
 		
-		taskList = new ListView<Task>();
+		taskList = new ListView<TaskInstance>();
 		taskList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		cancelTask = new Button("Cancel Tasks");
 		cancelTask.setOnAction(new EventHandler<ActionEvent>() {

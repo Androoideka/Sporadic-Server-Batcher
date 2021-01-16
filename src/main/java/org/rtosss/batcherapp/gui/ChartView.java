@@ -1,8 +1,9 @@
 package org.rtosss.batcherapp.gui;
 
+import org.rtosss.batcherapp.gui.components.AperiodicArrivalManager;
 import org.rtosss.batcherapp.gui.components.ChartMessageConsumer;
 import org.rtosss.batcherapp.model.RTS;
-import org.rtosss.batcherapp.model.Task;
+import org.rtosss.batcherapp.model.TaskInstance;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -28,6 +29,11 @@ public class ChartView extends VBox implements IStatusObserver {
 	private NumberAxis xTaskAxisTicks;
 	private CategoryAxis yAxisTask;
 	private LineChart<Number, String> taskChart;
+	
+	private NumberAxis xAperiodicAxisTicks;
+	private NumberAxis yAxisComputationTime;
+	private LineChart<Number, Number> aperiodicChart;
+	private AperiodicArrivalManager aperiodicManager;
 	
 	private ScrollBar scroller;
 	
@@ -57,6 +63,16 @@ public class ChartView extends VBox implements IStatusObserver {
 		taskChart.setTitle("Running tasks over time");
 		taskChart.setLegendVisible(false);
 		
+		xAperiodicAxisTicks = new NumberAxis("Ticks", 0, 10, 1);
+		xAperiodicAxisTicks.setMinorTickVisible(false);
+		
+		yAxisComputationTime = new NumberAxis("Computation Time (in ticks)", 0, 5, 1);
+		yAxisComputationTime.setMinorTickVisible(false);
+		
+		aperiodicChart = new LineChart<>(xAperiodicAxisTicks, yAxisComputationTime);
+		aperiodicChart.setTitle("Aperiodic arrivals over time");
+		aperiodicManager = new AperiodicArrivalManager(aperiodicChart);
+		
 		scroller = new ScrollBar();
 		scroller.setMin(0);
 		scroller.setMax(10);
@@ -73,14 +89,18 @@ public class ChartView extends VBox implements IStatusObserver {
 				xServerAxisTicks.setUpperBound(newValue + 10);
 				xTaskAxisTicks.setLowerBound(newValue);
 				xTaskAxisTicks.setUpperBound(newValue + 10);
+				xAperiodicAxisTicks.setLowerBound(newValue);
+				xAperiodicAxisTicks.setUpperBound(newValue + 10);
 			}
 			
 		});
 		
 		VBox.setVgrow(serverChart, Priority.ALWAYS);
 		VBox.setVgrow(taskChart, Priority.ALWAYS);
+		VBox.setVgrow(aperiodicChart, Priority.ALWAYS);
 		this.getChildren().add(serverChart);
 		this.getChildren().add(taskChart);
+		this.getChildren().add(aperiodicChart);
 		this.getChildren().add(scroller);
 	}
 
@@ -92,7 +112,7 @@ public class ChartView extends VBox implements IStatusObserver {
 			
 			yAxisCapacity.setUpperBound(system.getServerCapacity() + 2); // +2 just makes it look nicer
 			ObservableList<String> handles = FXCollections.observableArrayList();
-			for(Task task : system.getTasks()) {
+			for(TaskInstance task : system.getTasks()) {
 				handles.add(task.getHandle());
 			}
 			yAxisTask.setCategories(handles);
@@ -117,6 +137,7 @@ public class ChartView extends VBox implements IStatusObserver {
 	public void setRTS(RTS system) {
     	if(system != null) {
     		system.addObserver(this);
+    		system.setAperiodicManager(aperiodicManager);
     	}
 		this.system = system;
 	}
