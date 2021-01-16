@@ -10,6 +10,7 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
+import org.rtosss.batcherapp.exceptions.ErrorCode;
 import org.rtosss.batcherapp.exceptions.RTOSException;
 import org.rtosss.batcherapp.exceptions.StateException;
 import org.rtosss.batcherapp.gui.Status;
@@ -148,6 +149,10 @@ public class RTS extends StatusObservable {
 			idleTask.setHandle(response.substring(response.indexOf(' ') + 1));
 			tasks.add(idleTask);
 		} else {
+			RTOSException e = new RTOSException(response);
+			if(e.getErrorCode() == ErrorCode.SCHEDULE_NOT_FEASIBLE) {
+				tasks.clear();
+			}
 			throw new RTOSException(response);
 		}
 		this.serverCapacity = serverCapacity;

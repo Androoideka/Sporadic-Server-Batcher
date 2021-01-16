@@ -9,8 +9,10 @@ public class RTOSException extends RuntimeException {
 			errorCode = ErrorCode.NOTFOUND;
 		} else if(message.equals("Cannot execute this command while the scheduler is active.")) {
 			errorCode = ErrorCode.SCHEDULER_RUNNING;
-		} else if(message.equals("Schedule was not feasible with given set of tasks and server parameters.")) {
+		} else if(message.equals("Schedule was not feasible with given set of tasks. Your batch has been dropped.")) {
 			errorCode = ErrorCode.SCHEDULE_NOT_FEASIBLE;
+		} else if(message.equals("Schedule was not feasible with given server parameters.")) {
+			errorCode = ErrorCode.SERVER_NOT_FEASIBLE;
 		} else if(message.equals("Couldn't allocate required memory.")) {
 			errorCode = ErrorCode.COULD_NOT_ALLOCATE_MEMORY;
 		} // The next 3 exceptions shouldn't really appear but they're there for completeness.

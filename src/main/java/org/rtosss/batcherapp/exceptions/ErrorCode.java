@@ -3,6 +3,7 @@ package org.rtosss.batcherapp.exceptions;
 public enum ErrorCode {
 	SCHEDULER_RUNNING(-3),
 	SCHEDULE_NOT_FEASIBLE(-2),
+	SERVER_NOT_FEASIBLE(-6),
 	COULD_NOT_ALLOCATE_MEMORY(-1),
 	INVALIDCOMMAND(-100),
 	MISSINGPARAM(-1000),
