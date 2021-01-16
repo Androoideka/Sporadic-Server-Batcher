@@ -98,9 +98,9 @@ public class ChartView extends VBox implements IStatusObserver {
 		VBox.setVgrow(serverChart, Priority.ALWAYS);
 		VBox.setVgrow(taskChart, Priority.ALWAYS);
 		VBox.setVgrow(aperiodicChart, Priority.ALWAYS);
-		this.getChildren().add(serverChart);
 		this.getChildren().add(taskChart);
 		this.getChildren().add(aperiodicChart);
+		this.getChildren().add(serverChart);
 		this.getChildren().add(scroller);
 	}
 
