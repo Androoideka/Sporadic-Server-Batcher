@@ -47,11 +47,18 @@ public class ChartMessageConsumer extends AnimationTimer {
 			} catch(IndexOutOfBoundsException e) {
 				serverSeries.getData().add(new Data<>(stat.getTick(), stat.getCapacity()));
 			}
+			Data<Number, String> taskTick;
 			try {
-				Data<Number, String> graphTick = taskSeries.getData().get(stat.getTick());
-				graphTick.setYValue(stat.getHandle());
+				taskTick = taskSeries.getData().get(stat.getTick());
+				taskTick.setYValue(stat.getHandle());
 			} catch(IndexOutOfBoundsException e) {
-				taskSeries.getData().add(new Data<>(stat.getTick(), stat.getHandle()));
+				taskTick = new Data<>(stat.getTick(), stat.getHandle());
+				taskSeries.getData().add(taskTick);
+			}
+			if(stat.isMarker()) {
+				taskTick.getNode().setStyle("-fx-background-color: black;");
+			} else {
+				taskTick.getNode().setStyle("-fx-background-color: transparent;");
 			}
 		}
 	}

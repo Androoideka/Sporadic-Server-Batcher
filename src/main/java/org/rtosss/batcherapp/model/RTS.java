@@ -188,13 +188,14 @@ public class RTS extends StatusObservable {
 			while(process != null) {
 				try (BufferedReader statsReader = new BufferedReader(new FileReader(file))) {
 					String line;
-					while((line = statsReader.readLine()) != null && !line.equals("0 00000000 0")) {
+					while((line = statsReader.readLine()) != null) {
 						String[] stats = line.split(" ");
 						Integer tick = Integer.parseUnsignedInt(stats[0]);
 						String handle = stats[1];
 						Integer capacity = Integer.parseUnsignedInt(stats[2]);
+						boolean marker = Integer.parseInt(stats[3]) == 1 ? true : false;
 						
-						TickStats tickStats = new TickStats(tick, handle, capacity);
+						TickStats tickStats = new TickStats(tick, handle, capacity, marker);
 						visualStats.put(tickStats);
 					}
 					Thread.sleep(200);

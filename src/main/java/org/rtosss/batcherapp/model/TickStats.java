@@ -4,11 +4,13 @@ public final class TickStats implements Comparable<TickStats> {
 	private Integer tick;
 	private String handle;
 	private Integer capacity;
+	private boolean marker;
 	
-	public TickStats(Integer tick, String handle, Integer capacity) {
+	public TickStats(Integer tick, String handle, Integer capacity, boolean marker) {
 		this.tick = tick;
 		this.handle = handle;
 		this.capacity = capacity;
+		this.marker = marker;
 	}
 	
 	public Integer getTick() {
@@ -21,6 +23,10 @@ public final class TickStats implements Comparable<TickStats> {
 
 	public Integer getCapacity() {
 		return capacity;
+	}
+	
+	public boolean isMarker() {
+		return marker;
 	}
 
 	@Override

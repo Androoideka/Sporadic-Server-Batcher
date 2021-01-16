@@ -45,6 +45,7 @@ public class ChartView extends VBox implements IStatusObserver {
 		
 		serverChart = new AreaChart<>(xServerAxisTicks, yAxisCapacity);
 		serverChart.setTitle("Server capacity over time");
+		serverChart.setLegendVisible(false);
 		
 		xTaskAxisTicks = new NumberAxis("Ticks", 0, 10, 1);
 		xTaskAxisTicks.setMinorTickVisible(false);
@@ -54,6 +55,7 @@ public class ChartView extends VBox implements IStatusObserver {
 		
 		taskChart = new LineChart<>(xTaskAxisTicks, yAxisTask);
 		taskChart.setTitle("Running tasks over time");
+		taskChart.setLegendVisible(false);
 		
 		scroller = new ScrollBar();
 		scroller.setMin(0);
