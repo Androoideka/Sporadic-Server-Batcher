@@ -67,6 +67,7 @@ public final class TaskCode {
 			taskCodes.add(new TaskCode("task1", "1"));
 			taskCodes.add(new TaskCode("vTask1", "1"));
 			taskCodes.add(new TaskCode("vTask2", "2"));
+			taskCodes.add(new TaskCode("vTask3", "3"));
 			taskCodes.add(new TaskCode("vTask4", "4"));
 			taskCodes.add(new TaskCode("vInput", "1"));
 			functions = FXCollections.observableArrayList(taskCodes);

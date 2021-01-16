@@ -21,11 +21,11 @@ import javafx.scene.layout.VBox;
 public class ChartView extends VBox implements IStatusObserver {
 	private RTS system;
 	
-	private NumberAxis xAxisTicks;
-	
+	private NumberAxis xServerAxisTicks;
 	private NumberAxis yAxisCapacity;
 	private AreaChart<Number, Number> serverChart;
 	
+	private NumberAxis xTaskAxisTicks;
 	private CategoryAxis yAxisTask;
 	private LineChart<Number, String> taskChart;
 	
@@ -37,19 +37,22 @@ public class ChartView extends VBox implements IStatusObserver {
 		super();
 		this.setAlignment(Pos.CENTER);
 		
-		xAxisTicks = new NumberAxis("Ticks", 0, 10, 1);
-		xAxisTicks.setMinorTickVisible(false);
+		xServerAxisTicks = new NumberAxis("Ticks", 0, 10, 1);
+		xServerAxisTicks.setMinorTickVisible(false);
 		
 		yAxisCapacity = new NumberAxis("Capacity", 0, 10, 1);
 		yAxisCapacity.setMinorTickVisible(false);
 		
-		serverChart = new AreaChart<>(xAxisTicks, yAxisCapacity);
+		serverChart = new AreaChart<>(xServerAxisTicks, yAxisCapacity);
 		serverChart.setTitle("Server capacity over time");
+		
+		xTaskAxisTicks = new NumberAxis("Ticks", 0, 10, 1);
+		xTaskAxisTicks.setMinorTickVisible(false);
 		
 		yAxisTask = new CategoryAxis();
 		yAxisTask.setLabel("Task Handles");
 		
-		taskChart = new LineChart<>(xAxisTicks, yAxisTask);
+		taskChart = new LineChart<>(xTaskAxisTicks, yAxisTask);
 		taskChart.setTitle("Running tasks over time");
 		
 		scroller = new ScrollBar();
@@ -64,8 +67,10 @@ public class ChartView extends VBox implements IStatusObserver {
 				double realPosition = scroller.getValue();
 				double newValue = Math.floor(realPosition);
 				scroller.valueProperty().set(newValue);
-				xAxisTicks.setLowerBound(newValue);
-				xAxisTicks.setUpperBound(newValue + 10);
+				xServerAxisTicks.setLowerBound(newValue);
+				xServerAxisTicks.setUpperBound(newValue + 10);
+				xTaskAxisTicks.setLowerBound(newValue);
+				xTaskAxisTicks.setUpperBound(newValue + 10);
 			}
 			
 		});
