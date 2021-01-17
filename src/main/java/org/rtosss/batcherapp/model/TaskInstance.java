@@ -22,7 +22,7 @@ public class TaskInstance {
 		this.handle = handle;
 	}
 	public String deleteTask() {
-		return "remove_task " + handle;
+		return "stop_task " + handle;
 	}
 	
 	@Override
