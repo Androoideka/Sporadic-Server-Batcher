@@ -3,10 +3,23 @@ package org.rtosss.batcherapp.model;
 public class TaskInstance {
 	private Task task;
 	private String handle;
+	private Integer arrivalTime;
 	
-	public TaskInstance(Task task, String handle) {
+	public TaskInstance(Task task, String handle, String arrivalTime) {
 		this.task = task;
 		this.handle = handle;
+		this.arrivalTime = Integer.parseUnsignedInt(arrivalTime);
+	}
+	
+	public TaskInstance(Task task, String response) {
+		this.task = task;
+		String[] attributes = response.split(",");
+		String[] handleAttr = attributes[0].split(": ");
+		String handle = handleAttr[1];
+		String[] arrivalAttr = attributes[1].split(": ");
+		String arrivalTime = arrivalAttr[1];
+		this.handle = handle;
+		this.arrivalTime = Integer.parseUnsignedInt(arrivalTime);
 	}
 	
 	public Task getTask() {
@@ -20,6 +33,12 @@ public class TaskInstance {
 	}
 	public void setHandle(String handle) {
 		this.handle = handle;
+	}
+	public Integer getArrivalTime() {
+		return arrivalTime;
+	}
+	public void setArrivalTime(String arrivalTime) {
+		this.arrivalTime = Integer.parseUnsignedInt(arrivalTime);
 	}
 	public String deleteTask() {
 		return "stop_task " + handle;

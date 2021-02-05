@@ -41,7 +41,6 @@ public class TaskCreateDialog extends Dialog<Task> {
 	private Label ticksLabel;
 	private UnsignedIntegerField ticks;
 	private CheckBox periodic;
-	private CheckBox sendNow;
 	
 	public TaskCreateDialog() {
 		super();
@@ -62,7 +61,7 @@ public class TaskCreateDialog extends Dialog<Task> {
 		params.setText("NULL");
 		paramsBox = new VBox(paramsLabel, params);
 		
-		ticksLabel = new Label("Arrival");
+		ticksLabel = new Label("Arrival Offset");
 		ticks = new UnsignedIntegerField();
 		ticksBox = new VBox(ticksLabel, ticks);
 		
@@ -73,24 +72,8 @@ public class TaskCreateDialog extends Dialog<Task> {
 			public void handle(ActionEvent arg0) {
 				if(periodic.isSelected()) {
 					ticksLabel.setText("Period");
-					sendNow.setDisable(true);
 				} else {
-					ticksLabel.setText("Arrival");
-					sendNow.setDisable(false);
-				}
-			}
-			
-		});
-		
-		sendNow = new CheckBox("Now");
-		sendNow.setOnAction(new EventHandler<ActionEvent>() {
-
-			@Override
-			public void handle(ActionEvent arg0) {
-				if(sendNow.isSelected()) {
-					ticks.setDisable(true);
-				} else {
-					ticks.setDisable(false);
+					ticksLabel.setText("Arrival Offset");
 				}
 			}
 			
@@ -108,7 +91,6 @@ public class TaskCreateDialog extends Dialog<Task> {
 		grid.add(taskCodeBox, 1, 0);
 		grid.add(paramsBox, 2, 0);
 		grid.add(periodic, 1, 2);
-		grid.add(sendNow, 1, 3);
 		grid.add(ticksBox, 1, 1);
 		getDialogPane().setContent(grid);
 		
@@ -134,12 +116,7 @@ public class TaskCreateDialog extends Dialog<Task> {
 		if(periodic.isSelected()) {
 			this.setResult(new PeriodicTask(name.getText(), taskCodes.getValue(), params.getText(), ticks.getText()));
 		} else {
-			if(sendNow.isSelected()) {
-				this.setResult(new AperiodicTask(name.getText(), taskCodes.getValue(), params.getText(), null));
-			}
-			else {
-				this.setResult(new AperiodicTask(name.getText(), taskCodes.getValue(), params.getText(), ticks.getText()));
-			}
+			this.setResult(new AperiodicTask(name.getText(), taskCodes.getValue(), params.getText(), ticks.getText()));
 		}
 		return true;
 	}

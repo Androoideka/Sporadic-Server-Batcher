@@ -1,37 +1,25 @@
 package org.rtosss.batcherapp.model;
 
 public class AperiodicTask extends Task {
-	private Integer arrivalTime;
+	private int arrivalOffset;
 	
-	public AperiodicTask(String name, TaskCode taskCode, String params) {
+	public AperiodicTask(String name, TaskCode taskCode, String params, String arrivalOffset) {
 		super(name, taskCode, params);
-		this.arrivalTime = null;
-	}
-	
-	public AperiodicTask(String name, TaskCode taskCode, String params, String arrivalTime) {
-		super(name, taskCode, params);
-		this.arrivalTime = Integer.parseUnsignedInt(arrivalTime);
+		this.arrivalOffset = Integer.parseUnsignedInt(arrivalOffset);
 	}
 
-	public String getArrivalTime() {
-		if(arrivalTime == null) {
-			return "Dynamic";
-		}
-		return Integer.toUnsignedString(arrivalTime);
+	public int getArrivalOffset() {
+		return arrivalOffset;
 	}
 	
-	public Integer getArrival() {
-		return arrivalTime;
+	public void setArrivalOffset(int arrivalOffset) {
+		this.arrivalOffset = arrivalOffset;
 	}
 
 	@Override
 	public String addTask() {
 		String command = this.getBaseCommand();
-		if(arrivalTime == null) {
-			command = "add_task " + command;
-		} else {
-			command = "add_task_later " + command + " " + Integer.toUnsignedString(arrivalTime);
-		}
+		command = "add_task " + command + Integer.toUnsignedString(arrivalOffset);
 		return command;
 	}
 }

@@ -21,7 +21,7 @@ public abstract class Task {
 	public String getFunc() {
 		return taskCode.getMethodName() + "(" + params + ")";
 	}
-	public Integer getComputationTime() {
+	public int getComputationTime() {
 		return taskCode.getComputationTime();
 	}
 	public TaskCode getTaskCode() {

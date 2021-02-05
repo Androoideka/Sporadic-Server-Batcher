@@ -27,8 +27,8 @@ public class RTS extends StatusObservable {
 	private PeriodicTask statTask;
 	private PeriodicTask idleTask;
 	
-	private Integer serverCapacity;
-	private Integer serverPeriod;
+	private int serverCapacity;
+	private int serverPeriod;
 	
 	private Thread outputThread;
 	private Thread statThread;
@@ -65,9 +65,21 @@ public class RTS extends StatusObservable {
 		return tasks;
 	}
 	
-	private void readStatTask() throws IOException {
+	private void readInstance(Task task) throws IOException, RTOSException {
 		String response = controlReader.readLine();
-		tasks.add(new TaskInstance(statTask, response.substring(response.indexOf(' ') + 1)));
+		if(response.startsWith("Handle: ")) {
+			TaskInstance instance = new TaskInstance(task, response);
+			tasks.add(instance);
+			if(task instanceof AperiodicTask) {
+				aperiodicManager.addTask(instance);
+			}
+		} else {
+			RTOSException e = new RTOSException(response);
+			if(e.getErrorCode() == ErrorCode.SCHEDULE_NOT_FEASIBLE) {
+				tasks.clear();
+			}
+			throw e;
+		}
 	}
 	
 	public void start() throws RTOSException, IOException {
@@ -79,7 +91,7 @@ public class RTS extends StatusObservable {
 			controlReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			
 			// Comment this out if not using stats
-			readStatTask();
+			readInstance(statTask);
 			
 			updateStatus(Status.STARTED);
 		}
@@ -96,16 +108,7 @@ public class RTS extends StatusObservable {
 			inputWriter.write(command);
 			inputWriter.newLine();
 			inputWriter.flush();
-			String response = controlReader.readLine();
-			if(response.startsWith("Handle: ")) {
-				TaskInstance instance = new TaskInstance(task, response.substring(response.indexOf(' ') + 1));
-				tasks.add(instance);
-				if(instance.getTask() instanceof AperiodicTask) {
-					aperiodicManager.addTask(instance);
-				}
-			} else {
-				throw new RTOSException(response);
-			}
+			readInstance(task);
 		}
 	}
 	
@@ -123,7 +126,7 @@ public class RTS extends StatusObservable {
 		}
 	}
 	
-	public Integer getMaxCapacity(Integer period) throws RTOSException, IOException, StateException {
+	public int getMaxCapacity(int period) throws RTOSException, IOException, StateException {
 		if(status != Status.STARTED) {
 			throw StateException.factory(Status.STARTED);
 		}
@@ -134,14 +137,14 @@ public class RTS extends StatusObservable {
 		inputWriter.flush();
 		String response = controlReader.readLine();
 		try {
-			Integer capacity = Integer.parseUnsignedInt(response);
+			int capacity = Integer.parseUnsignedInt(response);
 			return capacity;
 		} catch(NumberFormatException e) {
 			throw new RTOSException(response);
 		}
 	}
 	
-	public void initialiseServer(Integer serverCapacity, Integer serverPeriod) throws RTOSException, IOException, StateException {
+	public void initialiseServer(int serverCapacity, int serverPeriod) throws RTOSException, IOException, StateException {
 		if(status != Status.STARTED) {
 			throw StateException.factory(Status.STARTED);
 		}
@@ -152,16 +155,7 @@ public class RTS extends StatusObservable {
 		inputWriter.write(command);
 		inputWriter.newLine();
 		inputWriter.flush();
-		String response = controlReader.readLine();
-		if(response.startsWith("Handle: ")) {
-			tasks.add(new TaskInstance(idleTask, response.substring(response.indexOf(' ') + 1)));
-		} else {
-			RTOSException e = new RTOSException(response);
-			if(e.getErrorCode() == ErrorCode.SCHEDULE_NOT_FEASIBLE) {
-				tasks.clear();
-			}
-			throw new RTOSException(response);
-		}
+		readInstance(idleTask);
 		this.serverCapacity = serverCapacity;
 		this.serverPeriod = serverPeriod;
 		
@@ -197,9 +191,9 @@ public class RTS extends StatusObservable {
 					String line;
 					while((line = statsReader.readLine()) != null) {
 						String[] stats = line.split(" ");
-						Integer tick = Integer.parseUnsignedInt(stats[0]);
+						int tick = Integer.parseUnsignedInt(stats[0]);
 						String handle = stats[1];
-						Integer capacity = Integer.parseUnsignedInt(stats[2]);
+						int capacity = Integer.parseUnsignedInt(stats[2]);
 						boolean marker = Integer.parseInt(stats[3]) == 1 ? true : false;
 						
 						TickStats tickStats = new TickStats(tick, handle, capacity, marker);

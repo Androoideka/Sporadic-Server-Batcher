@@ -1,19 +1,19 @@
 package org.rtosss.batcherapp.model;
 
 public final class TickStats implements Comparable<TickStats> {
-	private Integer tick;
+	private int tick;
 	private String handle;
-	private Integer capacity;
+	private int capacity;
 	private boolean marker;
 	
-	public TickStats(Integer tick, String handle, Integer capacity, boolean marker) {
+	public TickStats(int tick, String handle, int capacity, boolean marker) {
 		this.tick = tick;
 		this.handle = handle;
 		this.capacity = capacity;
 		this.marker = marker;
 	}
 	
-	public Integer getTick() {
+	public int getTick() {
 		return tick;
 	}
 
@@ -21,7 +21,7 @@ public final class TickStats implements Comparable<TickStats> {
 		return handle;
 	}
 
-	public Integer getCapacity() {
+	public int getCapacity() {
 		return capacity;
 	}
 	
@@ -31,13 +31,7 @@ public final class TickStats implements Comparable<TickStats> {
 
 	@Override
 	public int compareTo(TickStats o) {
-		if(o.tick == null) {
-			return 1;
-		}
-		if(tick == null) {
-			return -1;
-		}
-		if(tick > o.tick) {
+		if(o == null || tick > o.tick) {
 			return 1;
 		}
 		if(tick < o.tick) {
@@ -50,7 +44,7 @@ public final class TickStats implements Comparable<TickStats> {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((tick == null) ? 0 : tick.hashCode());
+		result = prime * result + tick;
 		return result;
 	}
 
@@ -63,10 +57,7 @@ public final class TickStats implements Comparable<TickStats> {
 		if (getClass() != obj.getClass())
 			return false;
 		TickStats other = (TickStats) obj;
-		if (tick == null) {
-			if (other.tick != null)
-				return false;
-		} else if (!tick.equals(other.tick))
+		if (tick != other.tick)
 			return false;
 		return true;
 	}

@@ -9,6 +9,8 @@ import org.rtosss.batcherapp.model.PeriodicTask;
 import org.rtosss.batcherapp.model.RTS;
 import org.rtosss.batcherapp.model.Task;
 
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,22 +20,18 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import javafx.util.Callback;
 
 public class BatcherView extends BorderPane implements IStatusObserver {
 	private RTS system;
 	
-	private ObservableList<PeriodicTask> periodicTasks;
-	private ObservableList<AperiodicTask> aperiodicTasks;
-	
-	private TableView<PeriodicTask> periodicTaskTable;
-	private TableView<AperiodicTask> aperiodicTaskTable;
-	
-	private HBox tables;
+	private ObservableList<Task> taskList;
+	private TableView<Task> taskTable;
 	
 	private Button addTask;
 	private Button removeTask;
@@ -44,46 +42,53 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 	public BatcherView() {
 		super();
 		
-		periodicTasks = FXCollections.observableArrayList();
-		periodicTaskTable = new TableView<>();
-		HBox.setHgrow(periodicTaskTable, Priority.ALWAYS);
-		periodicTaskTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		TableColumn<PeriodicTask, String> pname = new TableColumn<>("Task Name");
+		taskTable = new TableView<>();
+		taskTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		TableColumn<Task, String> pname = new TableColumn<>("Task Name");
 		pname.setCellValueFactory(new PropertyValueFactory<>("name"));
-		TableColumn<PeriodicTask, String> pfunc = new TableColumn<>("Function");
+		TableColumn<Task, String> pfunc = new TableColumn<>("Function");
 		pfunc.setCellValueFactory(new PropertyValueFactory<>("func"));
-		TableColumn<PeriodicTask, String> pcompTime = new TableColumn<>("Worst-Case Running Time");
+		TableColumn<Task, Integer> pcompTime = new TableColumn<>("Worst-Case Running Time");
 		pcompTime.setCellValueFactory(new PropertyValueFactory<>("computationTime"));
-		TableColumn<PeriodicTask, String> period = new TableColumn<>("Period");
-		period.setCellValueFactory(new PropertyValueFactory<>("period"));
 		
-		periodicTaskTable.getColumns().add(pname);
-		periodicTaskTable.getColumns().add(pfunc);
-		periodicTaskTable.getColumns().add(pcompTime);
-		periodicTaskTable.getColumns().add(period);
+		TableColumn<Task, String> period = new TableColumn<>("Period");
+		period.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Task, String> p) {
+				if(p.getValue() instanceof PeriodicTask) {
+					Integer period = ((PeriodicTask)p.getValue()).getPeriod();
+					return new ReadOnlyStringWrapper(Integer.toUnsignedString(period));
+				}
+				return new ReadOnlyStringWrapper("Aperiodic");
+			}
+			
+		});
 		
-		periodicTaskTable.setItems(periodicTasks);
+		TableColumn<Task, String> arrivalOffset = new TableColumn<>("Arrival Offset");
+		arrivalOffset.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
+
+			@Override
+			public ObservableValue<String> call(CellDataFeatures<Task, String> p) {
+				if(p.getValue() instanceof AperiodicTask) {
+					Integer period = ((AperiodicTask)p.getValue()).getArrivalOffset();
+					return new ReadOnlyStringWrapper(Integer.toUnsignedString(period));
+				}
+				return new ReadOnlyStringWrapper("Periodic");
+			}
+			
+		});
 		
-		aperiodicTasks = FXCollections.observableArrayList();
-		aperiodicTaskTable = new TableView<>();
-		HBox.setHgrow(aperiodicTaskTable, Priority.ALWAYS);
-		aperiodicTaskTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		TableColumn<AperiodicTask, String> aname = new TableColumn<>("Task Name");
-		aname.setCellValueFactory(new PropertyValueFactory<>("name"));
-		TableColumn<AperiodicTask, String> afunc = new TableColumn<>("Function");
-		afunc.setCellValueFactory(new PropertyValueFactory<>("func"));
-		TableColumn<AperiodicTask, String> acompTime = new TableColumn<>("Worst-Case Running Time");
-		acompTime.setCellValueFactory(new PropertyValueFactory<>("computationTime"));
-		TableColumn<AperiodicTask, String> arrivalTime = new TableColumn<>("Arrival Time");
-		arrivalTime.setCellValueFactory(new PropertyValueFactory<>("arrivalTime"));
+		taskTable.getColumns().add(pname);
+		taskTable.getColumns().add(pfunc);
+		taskTable.getColumns().add(pcompTime);
+		taskTable.getColumns().add(period);
+		taskTable.getColumns().add(arrivalOffset);
 		
-		aperiodicTaskTable.getColumns().add(aname);
-		aperiodicTaskTable.getColumns().add(afunc);
-		aperiodicTaskTable.getColumns().add(acompTime);
-		aperiodicTaskTable.getColumns().add(arrivalTime);
-		aperiodicTaskTable.setItems(aperiodicTasks);
+		taskTable.setColumnResizePolicy(TableView.UNCONSTRAINED_RESIZE_POLICY);
 		
-		tables = new HBox(periodicTaskTable, aperiodicTaskTable);
+		taskList = FXCollections.observableArrayList();
+		taskTable.setItems(taskList);
 		
 		createBatch = new Button("Send Batch");
 		createBatch.setDisable(true);
@@ -92,7 +97,7 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 			@Override
 			public void handle(ActionEvent arg0) {
 				try {
-					system.sendBatch(new Batch(periodicTaskTable.getSelectionModel().getSelectedItems(), aperiodicTaskTable.getSelectionModel().getSelectedItems()));
+					system.sendBatch(new Batch(taskTable.getSelectionModel().getSelectedItems()));
 				} catch(Exception e) {
 					ExceptionHandler.showException(e);
 				}
@@ -107,13 +112,8 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 				TaskCreateDialog dialog = new TaskCreateDialog();
 				Optional<Task> result = dialog.showAndWait();
 				if(result.isPresent()) {
-					if(result.get() instanceof PeriodicTask) {
-						PeriodicTask task = (PeriodicTask) result.get();
-						periodicTasks.add(task);
-					} else if(result.get() instanceof AperiodicTask) {
-						AperiodicTask task = (AperiodicTask) result.get();
-						aperiodicTasks.add(task);
-					}
+					Task task = result.get();
+					taskList.add(task);
 				}
 			}
 			
@@ -123,8 +123,7 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 
 			@Override
 			public void handle(ActionEvent arg0) {
-				periodicTasks.removeAll(periodicTaskTable.getSelectionModel().getSelectedItems());
-				aperiodicTasks.removeAll(aperiodicTaskTable.getSelectionModel().getSelectedItems());
+				taskList.removeAll(taskTable.getSelectionModel().getSelectedItems());
 			}
 			
 		});
@@ -134,7 +133,7 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 		bottom.setSpacing(8);
 		bottom.setAlignment(Pos.CENTER);
 		
-		this.setCenter(tables);
+		this.setCenter(taskTable);
 		this.setBottom(bottom);
 	}
 

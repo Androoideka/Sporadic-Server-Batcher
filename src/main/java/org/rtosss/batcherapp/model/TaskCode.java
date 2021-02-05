@@ -22,7 +22,7 @@ public final class TaskCode {
 		return methodName;
 	}
 	
-	public Integer getComputationTime() {
+	public int getComputationTime() {
 		return computationTime;
 	}
 	

@@ -6,10 +6,9 @@ import java.util.List;
 public class Batch {
 	private List<Task> tasks;
 	
-	public Batch(List<PeriodicTask> periodicTasks, List<AperiodicTask> aperiodicTasks) {
+	public Batch(List<Task> tasks) {
 		tasks = new ArrayList<>();
-		tasks.addAll(aperiodicTasks);
-		tasks.addAll(periodicTasks);
+		tasks.addAll(tasks);
 	}
 	
 	public List<Task> getTasks() {

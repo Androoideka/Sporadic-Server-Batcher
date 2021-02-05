@@ -19,13 +19,11 @@ public class AperiodicArrivalManager {
 	
 	public void addTask(TaskInstance task) {
 		AperiodicTask aperiodic = (AperiodicTask) task.getTask();
-		if(aperiodic.getArrival() == null) {
-			return;
-		}
 		boolean flag = false;
 		for(Series<Number, Number> taskSeries : aperiodicChart.getData()) {
 			Data<Number, Number> point = taskSeries.getData().get(0);
-			if(point.getXValue().equals(aperiodic.getArrival()) && point.getYValue().equals(aperiodic.getComputationTime())) {
+			if(point.getXValue().equals(task.getArrivalTime()) 
+					&& point.getYValue().equals(aperiodic.getComputationTime())) {
 				taskSeries.setName(taskSeries.getName() + ", " + task.getHandle());
 				flag = true;
 				break;
@@ -33,7 +31,8 @@ public class AperiodicArrivalManager {
 		}
 		if(!flag) {
 			ObservableList<Data<Number, Number>> line = FXCollections.observableArrayList();
-			Data<Number, Number> arrival = new Data<Number, Number>(aperiodic.getArrival(), aperiodic.getComputationTime());
+			Data<Number, Number> arrival = new Data<Number, Number>(task.getArrivalTime(),
+					aperiodic.getComputationTime());
 			line.add(arrival);
 			Series<Number, Number> taskSeries = new Series<>(task.getHandle(), line);
 			aperiodicChart.getData().add(taskSeries);
