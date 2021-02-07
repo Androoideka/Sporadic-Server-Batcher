@@ -62,7 +62,7 @@ public class TaskCreateDialog extends Dialog<Task> {
 		paramsBox = new VBox(paramsLabel, params);
 		
 		ticksLabel = new Label("Arrival Offset");
-		ticks = new UnsignedIntegerField();
+		ticks = new UnsignedIntegerField(false);
 		ticksBox = new VBox(ticksLabel, ticks);
 		
 		periodic = new CheckBox("Periodic");
@@ -72,8 +72,10 @@ public class TaskCreateDialog extends Dialog<Task> {
 			public void handle(ActionEvent arg0) {
 				if(periodic.isSelected()) {
 					ticksLabel.setText("Period");
+					ticks.setExcludeZero(true);
 				} else {
 					ticksLabel.setText("Arrival Offset");
+					ticks.setExcludeZero(false);
 				}
 			}
 			

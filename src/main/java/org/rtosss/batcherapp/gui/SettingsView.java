@@ -49,7 +49,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		super();
 		
 		statIntervalLabel = new Label("Stat Write Interval");
-		statInterval = new UnsignedIntegerField();
+		statInterval = new UnsignedIntegerField(true);
 		setStatInterval = new Button("Enable Stats");
 		setStatInterval.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -86,8 +86,8 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 		
 		serverCapacityLabel = new Label("Server Capacity");
 		serverPeriodLabel = new Label("Server Period");
-		serverCapacity = new UnsignedIntegerField();
-		serverPeriod = new UnsignedIntegerField();
+		serverCapacity = new UnsignedIntegerField(false);
+		serverPeriod = new UnsignedIntegerField(true);
 		checkMaxCapacity = new Button("Max Capacity");
 		checkMaxCapacity.setOnAction(new EventHandler<ActionEvent>() {
 
