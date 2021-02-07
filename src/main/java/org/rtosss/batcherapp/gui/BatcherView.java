@@ -36,6 +36,7 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 	private Button addTask;
 	private Button removeTask;
 	private Button createBatch;
+	private Button refreshTaskCodes;
 	
 	private HBox bottom;
 	
@@ -90,6 +91,21 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 		taskList = FXCollections.observableArrayList();
 		taskTable.setItems(taskList);
 		
+		refreshTaskCodes = new Button("Refresh Task Codes");
+		refreshTaskCodes.setDisable(true);
+		refreshTaskCodes.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent arg0) {
+				try {
+					system.refreshTaskCodes();
+				} catch(Exception e) {
+					ExceptionHandler.showException(e);
+				}
+			}
+			
+		});
+		
 		createBatch = new Button("Send Batch");
 		createBatch.setDisable(true);
 		createBatch.setOnAction(new EventHandler<ActionEvent>() {
@@ -129,7 +145,7 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 			
 		});
 		
-		bottom = new HBox(createBatch, addTask, removeTask);
+		bottom = new HBox(refreshTaskCodes, createBatch, addTask, removeTask);
 		bottom.setPadding(new Insets(20));
 		bottom.setSpacing(8);
 		bottom.setAlignment(Pos.CENTER);
@@ -142,8 +158,10 @@ public class BatcherView extends BorderPane implements IStatusObserver {
 	public void updateStatus(Status status) {
 		if(status == Status.UNAVAILABLE || status == Status.LOADED) {
 			createBatch.setDisable(true);
+			refreshTaskCodes.setDisable(true);
 		} else {
 			createBatch.setDisable(false);
+			refreshTaskCodes.setDisable(false);
 		}
 	}
 

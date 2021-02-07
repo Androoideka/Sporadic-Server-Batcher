@@ -96,6 +96,31 @@ public class RTS extends StatusObservable {
 		}
 	}
 	
+	public void refreshTaskCodes() throws RTOSException, IOException {
+		String command = "recalculate_wcet";
+		inputWriter.write(command);
+		inputWriter.newLine();
+		inputWriter.flush();
+		command = "show_task_codes";
+		inputWriter.write(command);
+		inputWriter.newLine();
+		inputWriter.flush();
+		String response = controlReader.readLine();
+		int taskCodeLength;
+		try {
+			taskCodeLength = Integer.parseUnsignedInt(response);
+		} catch(NumberFormatException e) {
+			throw new RTOSException(response);
+		}
+		TaskCode.getFunctions().clear();
+		for(int i = 0; i < taskCodeLength; i++) {
+			response = controlReader.readLine();
+			String[] codeAttr = response.split(" ");
+			TaskCode taskCode = new TaskCode(codeAttr[0], codeAttr[1]);
+			TaskCode.getFunctions().add(taskCode);
+		}
+	}
+	
 	public void setStats(int interval) throws RTOSException, IOException
 	{
 		String command = "configure_stats " + Integer.toUnsignedString(interval);
@@ -103,7 +128,7 @@ public class RTS extends StatusObservable {
 		inputWriter.newLine();
 		inputWriter.flush();
 		readInstance(statTask);
-		statInterval = Long.parseUnsignedLong(Integer.toUnsignedString(interval));
+		statInterval = Integer.toUnsignedLong(interval);
 	}
 	
 	public void sendBatch(Batch batch) throws RTOSException, IOException, StateException {

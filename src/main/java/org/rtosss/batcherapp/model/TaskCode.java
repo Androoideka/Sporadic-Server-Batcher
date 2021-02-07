@@ -1,8 +1,5 @@
 package org.rtosss.batcherapp.model;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -62,15 +59,14 @@ public final class TaskCode {
 	
 	public static ObservableList<TaskCode> getFunctions() {
 		if (functions == null) {
-			Set<TaskCode> taskCodes = new HashSet<>();
-			taskCodes.add(new TaskCode("task0", "1"));
-			taskCodes.add(new TaskCode("task1", "1"));
-			taskCodes.add(new TaskCode("vTask1", "1"));
-			taskCodes.add(new TaskCode("vTask2", "2"));
-			taskCodes.add(new TaskCode("vTask3", "3"));
-			taskCodes.add(new TaskCode("vTask4", "4"));
-			taskCodes.add(new TaskCode("vInput", "1"));
-			functions = FXCollections.observableArrayList(taskCodes);
+			functions = FXCollections.observableArrayList();
+			functions.add(new TaskCode("task0", "1"));
+			functions.add(new TaskCode("task1", "1"));
+			functions.add(new TaskCode("vTask1", "1"));
+			functions.add(new TaskCode("vTask2", "2"));
+			functions.add(new TaskCode("vTask3", "3"));
+			functions.add(new TaskCode("vTask4", "4"));
+			functions.add(new TaskCode("vInput", "1"));
 		}
 		return functions;
 	}
