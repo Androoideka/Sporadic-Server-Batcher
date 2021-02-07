@@ -1,6 +1,5 @@
 package org.rtosss.batcherapp.gui;
 
-import org.rtosss.batcherapp.controller.TaskCreateController;
 import org.rtosss.batcherapp.gui.components.LimitedTextField;
 import org.rtosss.batcherapp.gui.components.UnsignedIntegerField;
 import org.rtosss.batcherapp.model.AperiodicTask;
@@ -13,7 +12,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -44,6 +42,8 @@ public class TaskCreateDialog extends Dialog<Task> {
 	
 	public TaskCreateDialog() {
 		super();
+		
+		setTitle("Add New Task");
 		
 		nameLabel = new Label("Name");
 		name = new LimitedTextField();
@@ -95,29 +95,31 @@ public class TaskCreateDialog extends Dialog<Task> {
 		getDialogPane().setContent(grid);
 		
 		getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
-		((Button)getDialogPane().lookupButton(ButtonType.OK)).setOnAction(new TaskCreateController(this));
-	}
-	
-	public boolean addTask() {
-		if(name.getText().isBlank() || taskCodes.getValue() == null || params.getText().isBlank()) {
-			Alert alert = new Alert(AlertType.ERROR);
-			alert.setTitle("Creation failure");
-			alert.setHeaderText("Missing values");
-			if(name.getText().isBlank()) {
-				alert.setContentText("You haven't provided a name.");
-			} else if(taskCodes.getValue() == null) {
-				alert.setContentText("You haven't provided a task code.");
-			} else if(params.getText().isBlank()) {
-				alert.setContentText("You haven't provided a parameter. If you don't wish to provide anything, type NULL.");
+		
+		this.setResultConverter(buttonType -> {
+			if(buttonType == ButtonType.OK) {
+				if(name.getText().isBlank() || taskCodes.getValue() == null || params.getText().isBlank()) {
+					Alert alert = new Alert(AlertType.ERROR);
+					alert.setTitle("Creation failure");
+					alert.setHeaderText("Missing values");
+					if(name.getText().isBlank()) {
+						alert.setContentText("You haven't provided a name.");
+					} else if(taskCodes.getValue() == null) {
+						alert.setContentText("You haven't provided a task code.");
+					} else if(params.getText().isBlank()) {
+						alert.setContentText("You haven't provided a parameter. If you don't wish to provide anything, type NULL.");
+					}
+					alert.showAndWait();
+					return null;
+				}
+				if(periodic.isSelected()) {
+					return new PeriodicTask(name.getText(), taskCodes.getValue(), params.getText(), ticks.getText());
+				} else {
+					return new AperiodicTask(name.getText(), taskCodes.getValue(), params.getText(), ticks.getText());
+				}
+			} else {
+				return null;
 			}
-			alert.showAndWait();
-			return false;
-		}
-		if(periodic.isSelected()) {
-			this.setResult(new PeriodicTask(name.getText(), taskCodes.getValue(), params.getText(), ticks.getText()));
-		} else {
-			this.setResult(new AperiodicTask(name.getText(), taskCodes.getValue(), params.getText(), ticks.getText()));
-		}
-		return true;
+		});
 	}
 }

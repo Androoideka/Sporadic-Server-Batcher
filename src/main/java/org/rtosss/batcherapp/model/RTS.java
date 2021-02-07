@@ -31,6 +31,7 @@ public class RTS extends StatusObservable {
 	private int serverPeriod;
 	
 	private Thread outputThread;
+	private long statInterval;
 	private Thread statThread;
 	
 	private BlockingQueue<Character> visualOutput;
@@ -45,7 +46,7 @@ public class RTS extends StatusObservable {
 		super();
 		builder = new ProcessBuilder(systemExecLocation);
 		tasks = FXCollections.observableArrayList();
-		statTask = new PeriodicTask("stat", TaskCode.getStatCode(), "", "1000");
+		statTask = new PeriodicTask("statwriter", TaskCode.getStatCode(), "", "1000");
 		idleTask = new PeriodicTask("IDLE", TaskCode.getIdleCode(), "", "4294967295");
 	}
 
@@ -82,19 +83,27 @@ public class RTS extends StatusObservable {
 		}
 	}
 	
-	public void start() throws RTOSException, IOException {
+	public void start() throws IOException {
 		if(process == null) {
 			tasks.clear();
 			process = builder.start();
 			inputWriter = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
 			outputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			controlReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-			
-			// Comment this out if not using stats
-			readInstance(statTask);
+			statInterval = 0;
 			
 			updateStatus(Status.STARTED);
 		}
+	}
+	
+	public void setStats(int interval) throws RTOSException, IOException
+	{
+		String command = "configure_stats " + Integer.toUnsignedString(interval);
+		inputWriter.write(command);
+		inputWriter.newLine();
+		inputWriter.flush();
+		readInstance(statTask);
+		statInterval = Long.parseUnsignedLong(Integer.toUnsignedString(interval));
 	}
 	
 	public void sendBatch(Batch batch) throws RTOSException, IOException, StateException {
@@ -177,37 +186,39 @@ public class RTS extends StatusObservable {
 		});
 		outputThread.start();
 		
-		// Initialise stat stream
-		statThread = new Thread(() -> {
-			File file = new File(System.getProperty("user.dir") + File.separator + "log.txt");
-			try {
-				Thread.sleep(20);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			while(process != null) {
-				try (BufferedReader statsReader = new BufferedReader(new FileReader(file))) {
-					String line;
-					while((line = statsReader.readLine()) != null) {
-						String[] stats = line.split(" ");
-						int tick = Integer.parseUnsignedInt(stats[0]);
-						String handle = stats[1];
-						int capacity = Integer.parseUnsignedInt(stats[2]);
-						boolean marker = Integer.parseInt(stats[3]) == 1 ? true : false;
-						
-						TickStats tickStats = new TickStats(tick, handle, capacity, marker);
-						visualStats.put(tickStats);
-					}
-					Thread.sleep(200);
-				} catch (IOException e) {
-					return;
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+		if(statInterval != 0) {
+			// Initialise stat stream
+			statThread = new Thread(() -> {
+				File file = new File(System.getProperty("user.dir") + File.separator + "log.txt");
+				try {
+					Thread.sleep(statInterval - 1);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
-			}
-		});
-		statThread.start();
+				while(process != null) {
+					try (BufferedReader statsReader = new BufferedReader(new FileReader(file))) {
+						String line;
+						while((line = statsReader.readLine()) != null) {
+							String[] stats = line.split(" ");
+							int tick = Integer.parseUnsignedInt(stats[0]);
+							String handle = stats[1];
+							int capacity = Integer.parseUnsignedInt(stats[2]);
+							boolean marker = Integer.parseInt(stats[3]) == 1 ? true : false;
+							
+							TickStats tickStats = new TickStats(tick, handle, capacity, marker);
+							visualStats.put(tickStats);
+						}
+						Thread.sleep(statInterval);
+					} catch (IOException e) {
+						return;
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			});
+			statThread.start();
+		}
 	}
 	
 	public Integer getServerCapacity() {

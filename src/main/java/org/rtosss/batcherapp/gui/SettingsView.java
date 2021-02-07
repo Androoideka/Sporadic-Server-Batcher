@@ -26,6 +26,9 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	private boolean isOn;
 	
 	private VBox left;
+	private Label statIntervalLabel;
+	private UnsignedIntegerField statInterval;
+	private Button setStatInterval;
 	private ListView<TaskInstance> taskList;
 	private Button cancelTask;
 	
@@ -45,6 +48,23 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	public SettingsView() {
 		super();
 		
+		statIntervalLabel = new Label("Stat Write Interval");
+		statInterval = new UnsignedIntegerField();
+		setStatInterval = new Button("Enable Stats");
+		setStatInterval.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent arg0) {
+				int interval = Integer.parseUnsignedInt(statInterval.getText());
+				try {
+					system.setStats(interval);
+					setStatInterval.setDisable(true);
+				} catch(Exception e) {
+					ExceptionHandler.showException(e);
+				}
+			}
+			
+		});
 		taskList = new ListView<TaskInstance>();
 		taskList.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		cancelTask = new Button("Cancel Tasks");
@@ -60,7 +80,7 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 			}
 			
 		});
-		left = new VBox(8, taskList, cancelTask);
+		left = new VBox(8, statIntervalLabel, statInterval, setStatInterval, taskList, cancelTask);
 		left.setAlignment(Pos.CENTER);
 		left.setPadding(new Insets(20));
 		
@@ -140,17 +160,20 @@ public class SettingsView extends BorderPane implements IStatusObserver {
 	public void updateStatus(Status status) {
 		if(status == Status.UNAVAILABLE || status == Status.LOADED) {
 			isOn = false;
+			setStatInterval.setDisable(true);
 			checkMaxCapacity.setDisable(true);
 			initialise.setDisable(true);
 			switchButton.setText("Start");
 			cancelTask.setDisable(true);
 		} else if(status == Status.STARTED) {
 			isOn = true;
+			setStatInterval.setDisable(false);
 			initialise.setDisable(false);
 			checkMaxCapacity.setDisable(false);
 			switchButton.setText("Stop");
 			output.setText("");
 		} else if(status == Status.ACTIVE) {
+			setStatInterval.setDisable(true);
 			checkMaxCapacity.setDisable(true);
 			initialise.setDisable(true);
 			cancelTask.setDisable(false);

@@ -7,8 +7,8 @@ public class Batch {
 	private List<Task> tasks;
 	
 	public Batch(List<Task> tasks) {
-		tasks = new ArrayList<>();
-		tasks.addAll(tasks);
+		this.tasks = new ArrayList<>();
+		this.tasks.addAll(tasks);
 	}
 	
 	public List<Task> getTasks() {
